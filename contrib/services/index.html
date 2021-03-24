@@ -1,0 +1,65 @@
+<HTML><HEAD>
+<TITLE>Inferno Contribution: services</TITLE>
+</HEAD><BODY>
+<H3>Inferno Contribution: services</H3>
+<h3>Examples of Inferno Services in Limbo</h3>
+
+These two examples from Roger Peppe illustrate two ways to write a Limbo program to implement a 
+service.
+
+<h4> server.b </h4>
+
+The first example, server.b, uses the file2chan system call to
+provide an append-only file service (on /chan/srvfile).  Any data
+written to the file by another process is received by the server program and is appended
+to a string held internally.  If a process reads the file,
+the server returns the contents of the string.
+<p>
+To test the program, compile it, start it off in the background, echo a couple of strings to
+/chan/srvfile and then read the file back again:
+<p>
+<pre>
+% limbo server.b
+% server &
+% echo hello > /chan/srvfile
+% echo goodbyte > /chan/srvfile
+% cat /chan/srvfile
+hello
+goodbye
+%
+</pre>
+
+
+<h4> server2.b </h4>
+
+This program shows how to implement a similar append-only file service using <b>styxlib</b>
+to process Styx messages directly. 
+<p>
+To test the program, create a temporary directory, echo a couple of strings to
+the server file and then read the file back again:
+<p>
+<pre>
+% limbo server2.b
+% mkdir /tmp/chan
+% server2 /tmp/chan
+% echo hello > /tmp/chan/srvfile
+% echo goodbyte > /tmp/chan/srvfile
+% cat /tmp/chan/srvfile
+hello
+goodbye
+%
+</pre>
+
+
+<HR>
+The following files are available for downloading:<TABLE BORDER="0">
+<TR>
+<TD><a href="server.b">server.b</a></TD>
+<TD>(1236 bytes)</TD>
+</TR>
+<TR>
+<TD><a href="server2.b">server2.b</a></TD>
+<TD>(4015 bytes)</TD>
+</TR>
+</TABLE>
+</BODY></HTML>

@@ -1,0 +1,18 @@
+.TH VARIABLE 9
+.SH NAME
+variable \- interrogate a radiobutton variable
+.SH SYNOPSIS
+\f5variable \fIvar\fR
+.SH DESCRIPTION
+.B Variable
+returns the value of a Tk radiobutton variable.
+An error diagnostic will be returned if
+the variable is of the wrong type (if for instance
+it is the name of a named channel).
+.PP
+The special variable
+.B lasterror
+gives the text of the last Tk error encountered.
+It resets when queried.
+.SH SEE ALSO
+.IR radiobutton (9)

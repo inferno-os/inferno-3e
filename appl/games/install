@@ -1,0 +1,16 @@
+#!/dis/sh
+
+load std
+if {ftest -d /dis/games} {
+	echo 'already installed?' >[1=2]
+	raise error
+}
+mkdir /dis/games
+cp *.dis /dis/games
+for i in clients engines lib {
+	mkdir /dis/games/$i
+	cp $i/*.dis /dis/games/$i
+}
+
+mkdir /icons/cards
+cp clients/images/[0-9]* /icons/cards

@@ -1,0 +1,54 @@
+.TH 5CV 10.1
+.SH NAME
+5cv \- executable conversion utility for Arm
+.SH SYNOPSIS
+.B 5cv
+[
+.I option ...
+]
+.I executable outfile
+.SH DESCRIPTION
+.IR 5cv
+copies the
+.I executable
+into the named
+.IR outfile ,
+converting the header into a variety of disparate formats.
+The type of conversion is controlled by the
+.B -H
+option. The possibilities are:
+.TP 1i
+.BI -H1
+AIF for RISCOS.
+.TP
+.BI -H2
+Plan 9.
+.TP
+.BI -H3
+Boot for NetBSD.
+.TP
+.BI -H4
+Headerless, stripped, and padded to 2K in length. Used for the ROM resident serial
+boostrap
+loader in a Cirrus EP72xx
+.TP
+.BI -H5
+Headerless, and stripped, for general use.
+.TP
+.BI -H6
+EPOC IMG format. Not a complete conversion, currently sufficient for use with some
+NT based downloaders which autosense the file type by the "EP" signature, and then
+ignore the contents of the header.
+.PP
+The other options are:
+.TP 1i
+.BI -s
+Strip symbol table.
+.TP
+.BI -D n
+Enables debug output.
+.SH SOURCE
+.B /utils/5cv
+etc.
+.SH "SEE ALSO"
+.IR 5cv (10.1)

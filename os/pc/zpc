@@ -1,0 +1,126 @@
+dev
+	root
+	cons		archzpc
+	env
+	mnt
+	pipe
+	prog
+	rtc
+	srv
+	ssl
+
+	draw	screen
+
+	ip		bootp ip ipaux iproute arp netlog ptclbsum386 iprouter plan9 nullmedium pktmedium
+	ether		netif netaux ethermedium
+
+	ata
+#	audio
+	beep
+	ns16552	dma
+	floppy	dma
+	lpt
+
+	zt5512
+
+#	dbg	x86break
+
+	flash
+	ftl
+
+ip
+#	il
+	tcp
+	udp
+	ipifc
+	icmp
+	ipmux
+
+lib
+	interp
+	keyring
+	memlayer
+	memimage
+	tk
+	image
+	crypt
+	math
+	kern
+
+ether
+	ether2114x	pci
+	ps2mouse
+	pppmedium ppp compress
+
+vga
+	vgaclgd542x
+
+misc
+	archgeneric
+
+link
+	flashzpc
+
+mod
+	sys
+	draw
+	tk
+	keyring
+	math
+
+init
+	ztinit
+
+code
+	int kernel_pool_pcnt = 10;
+	int main_pool_pcnt = 40;
+	int heap_pool_pcnt = 20;
+	int image_pool_pcnt = 40;
+	int cflag=1;
+	int swcursor=1;
+	int consoleprint=1;
+#	int novgascreen=1;
+	int watchdog=1;
+
+port
+	alarm
+	alloc
+	auth
+	chan
+	dev
+	dial
+	dis
+	discall
+	env
+	exception
+	exportfs
+	inferno
+	latin1
+	pgrp
+	print
+	proc
+	qio
+	qlock
+	styx
+	sysfile
+	taslock
+	utils
+	xalloc
+
+root
+	/chan
+	/dev
+	/dis
+	/env
+	/n
+	/n/remote
+	/n/ssl
+	/nvfs
+	/net
+	/prog
+	/dis/lib
+	/dis/svc
+	/dis/wm
+	/osinit.dis
+	/dis/lib/auth.dis
+	/dis/lib/ssl.dis

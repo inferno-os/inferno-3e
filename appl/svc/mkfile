@@ -1,0 +1,11 @@
+<../../mkconfig
+
+DIRS=\
+	cdfs\
+	cs\
+	dossrv\
+	ppp\
+	httpd\
+	webget\
+
+<$ROOT/mkfiles/mksubdirs

@@ -1,0 +1,41 @@
+<../../../mkconfig
+
+TARG=	mk.dis\
+
+MODULES=\
+	ar.m\
+	arc.b\
+	archive.b\
+	bufblock.b\
+	dir.b\
+	env.b\
+	file.b\
+	graph.b\
+	job.b\
+	lex.b\
+	match.b\
+	mkx.b\
+	os.b\
+	parse.b\
+	recipe.b\
+	rule.b\
+	run.b\
+	sh.b\
+	shprint.b\
+	symtab.b\
+	var.b\
+	varsub.b\
+	word.b\
+
+SYSMODULES= \
+	bufio.m\
+	draw.m\
+	math.m\
+	sys.m\
+	regex.m\
+	daytime.m\
+	libc0.m\
+
+DISBIN=$ROOT/dis
+
+<$ROOT/mkfiles/mkdis

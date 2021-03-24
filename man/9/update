@@ -1,0 +1,14 @@
+.TH UPDATE 9
+.SH NAME
+update \- flush graphics
+.SH SYNOPSIS
+\f5update\fP
+.SH DESCRIPTION
+Changes made via Tk commands do not become
+visible until a call to
+.BR update .
+.B Update
+flushes any pending changes to the screen.
+.SH BUGS
+Changes that affect window sizes are visible immediately;
+flush cannot help here.

@@ -1,0 +1,21 @@
+canvas .a -width 626 -height 264
+frame .a.b
+frame .a.b.c
+frame .a.b.c.d
+pack .a.b.c.d -side top -fill x
+pack .a.b.c -side left -expand 1 -fill both
+.a create window 0 0 -window .a.b -anchor nw -width 626 -height 184
+pack propagate .a.b 0
+pack .a -side top -fill both -expand 1
+update
+frame .a.b.c.d.0 -relief sunken -bd 5
+frame .a.b.c.d.0.f
+label .a.b.c.d.0.f.l -text '0. chat
+button .a.b.c.d.0.f.b -text Join -command {send ucmd join 0}
+pack .a.b.c.d.0.f.l .a.b.c.d.0.f.b -side left
+pack .a.b.c.d.0.f -side top -anchor w
+pack .a.b.c.d.0 -side top -anchor w -fill x
+update
+label .a.b.c.d.0.0 -text '    rog 0
+pack .a.b.c.d.0.0 -side top -anchor w
+update

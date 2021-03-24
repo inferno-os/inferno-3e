@@ -1,0 +1,99 @@
+<HTML><HEAD>
+<TITLE>Inferno Contribution: converter</TITLE>
+</HEAD><BODY>
+<H3>Inferno Contribution: converter</H3>
+This example illustrates how to write a Limbo program to provide a
+service which accepts requests from multiple processes.
+
+<p>
+A previous contribution from Roger Peppe showed how to use file2chan to provide
+a service based on a single file, but it would get confused if it was used by more
+than one process at once.
+<p>
+The example here shows how to use the FID returned by file2chan to handle
+multiplexed requests from any number of  processes.
+ <p>
+There are two modules, <b>converts.b</b> (a generalized service module) and
+<b>degrees.b</b> (an example converter module).
+
+<h3>converts.b</h3>
+
+This module also implements a "conversion service", ie one which takes a string written to
+a single file, and returns a new string based on the old one. Because it can be used by
+multiple simultaneous processes, the  file must be held open for reading and writing
+by the process making use of it.
+<p>
+The module is invoked with two arguments:
+<ol>
+<li> The name of the file to be served, eg /chan/temp
+<li> The converter module, eg degrees.dis
+</ol>
+Eg
+<pre>
+% converts /chan/temp degrees.dis
+</pre>
+
+Whenever the served  file is written to by a user, the converter module
+is called to find the reply, and this is stored (in the list <b>replist</b>).
+When the user reads back the file, the correct reply is located, returned
+to the user and is
+deleted from the stored list.
+
+<p>
+When the served file is closed by the user, any associated reply is discarded.
+
+<h3>degrees.b</h3>
+
+This is a very simple module which provides a temperature conversion
+facility. It will convert degrees Fahrenheit to degrees Centigrade and
+vice-versa.
+<p>
+This module could be replaced by any other module with the
+same signature (as defined in the template in <b>converter_tmpl.m</b>).
+<p>
+
+<h3>Installation and Testing using the shell</h3>
+
+To try out this example, download the three files and compile
+the two Limbo modules:
+<pre>
+% limbo converts.b degrees.b
+</pre>
+Now run the convertor:
+<pre>
+% converts /chan/temp degrees.dis
+</pre>
+
+If you want to test this using the shell, it is slightly more complicated
+than just echoing a string to the file and reading it back again, because
+the file has to be held open. The way to do this is to use the <> operator
+to open the standard input for both reading and writing, echo a string
+to this file and read back the result with cat:
+
+<pre>
+% { echo 10F >[1=0] ; cat } <> /chan/temp
+</pre>
+
+This should produce the following reply:
+<pre>
+10.00 deg F = -12.22 deg C
+</pre>
+
+Dave Atkin<br>
+Vita Nuova
+<HR>
+The following files are available for downloading:<TABLE BORDER="0">
+<TR>
+<TD><a href="converter_tmpl.m">converter_tmpl.m</a></TD>
+<TD>(111 bytes)</TD>
+</TR>
+<TR>
+<TD><a href="converts.b">converts.b</a></TD>
+<TD>(2577 bytes)</TD>
+</TR>
+<TR>
+<TD><a href="degrees.b">degrees.b</a></TD>
+<TD>(845 bytes)</TD>
+</TR>
+</TABLE>
+</BODY></HTML>

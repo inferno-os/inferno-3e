@@ -1,0 +1,173 @@
+<../../mkconfig
+
+DIRS=\
+	convcs\
+	crypt\
+	ecmascript\
+	print\
+	strokes\
+	usb\
+	w3c\
+
+TARG=\
+	arg.dis\
+	asn1.dis\
+	auth.dis\
+	bootp.dis\
+	bufio.dis\
+	cfg.dis\
+	cfgfile.dis\
+	chanfill.dis\
+	chatsrv.dis\
+	countersigner.dis\
+	cpuslave.dis\
+	createsignerkey.dis\
+	crc.dis\
+	cs.dis\
+	csget.dis\
+	daytime.dis\
+	db.dis\
+	dbsrv.dis\
+	debug.dis\
+	deflate.dis\
+	devpointer.dis\
+	dict.dis\
+	dis.dis\
+	dividers.dis\
+	env.dis \
+	filepat.dis\
+	gamer.dis\
+	hash.dis\
+	html.dis\
+	imageremap.dis\
+	inflate.dis\
+	ipsrv.dis\
+	ir.dis\
+	irsage.dis\
+	irsim.dis\
+	isrv.dis\
+	kvlib.dis\
+	libc.dis\
+	libc0.dis\
+	lock.dis\
+	login.dis\
+	logind.dis\
+	memfs.dis\
+	mpeg.dis\
+	newns.dis\
+	parseman.dis\
+	password.dis\
+	plumbmsg.dis\
+	plumber.dis\
+	plumbing.dis\
+	pop3.dis\
+	popup.dis\
+	powerman.dis\
+	profile.dis\
+	pslib.dis\
+	quicktime.dis\
+	rand.dis\
+	random.dis\
+	rdbgsrv.dis\
+	readdir.dis\
+	readgif.dis\
+	readjpg.dis\
+	readpicfile.dis\
+	readpng.dis\
+	readxbitmap.dis\
+	regex.dis\
+	regexutils.dis\
+	riff.dis\
+	rstyxd.dis\
+	scoretable.dis\
+	signer.dis\
+	simplefs.dis\
+	smtp.dis\
+	srv.dis\
+	ssl.dis\
+	string.dis\
+	strinttab.dis\
+	styx.dis\
+	styxd.dis\
+	styxlib.dis \
+	styxservers.dis\
+	istyxd.dis\
+	tftp.dis\
+	tftpd.dis\
+	tcl_utils.dis\
+	tcl_tk.dis\
+	tcl_symhash.dis\
+	tcl_string.dis\
+	tcl_strhash.dis\
+	tcl_stack.dis\
+	tcl_modhash.dis\
+	tcl_list.dis\
+	tcl_io.dis\
+	tcl_inthash.dis\
+	tcl_core.dis\
+	tcl_calc.dis\
+	translate.dis\
+	url.dis\
+	verify.dis\
+	virgil.dis\
+	virgild.dis\
+	volume.dis\
+	wmlib.dis\
+	workdir.dis\
+	writegif.dis\
+
+MODULES=
+
+SYSMODULES= \
+	bufio.m\
+	cci.m\
+	daytime.m\
+	db.m\
+	debug.m\
+	devpointer.m\
+	dict.m\
+	draw.m\
+	env.m\
+	filepat.m\
+	filter.m\
+	hash.m\
+	html.m\
+	imagefile.m\
+	inflate.m\
+	ipsrv.m\
+	ir.m\
+	keyring.m\
+	kvlib.m\
+	lock.m\
+	mpeg.m\
+	newns.m\
+	plumbmsg.m\
+	powerman.m\
+	prefab.m\
+	pslib.m\
+	quicktime.m\
+	rand.m\
+	readdir.m\
+	regex.m\
+	riff.m\
+	scoretable.m\
+	simplefs.m\
+	security.m\
+	sh.m\
+	smtp.m\
+	srv.m\
+	string.m\
+	styx.m\
+	styxservers.m\
+	sys.m\
+	url.m\
+	volume.m\
+	wmlib.m\
+
+DISBIN=$ROOT/dis/lib
+
+<$ROOT/mkfiles/mkdis
+<$ROOT/mkfiles/mksubdirs
+
+plumbing.dis:N: plumbing.m
+plumber.dis:N: plumbing.m

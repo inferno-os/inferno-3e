@@ -1,0 +1,13 @@
+#!/dis/sh -n
+load std
+algs=(none sha md4 md5
+	rc4 rc4_40 rc4_128 rc4_256 des_56_cbc des_56_ecb ideacbc ideaecb)
+(and
+	{bind $home/keyring/games/server $home/keyring/default}
+	{games/gamesrv -a^$algs 'tcp!*!3242'}
+	{listen 'tcp!*!6660' {
+			echo got login connection from `{cat $net/remote} >[1=2]
+			games/gamelogind
+		}
+	}
+)

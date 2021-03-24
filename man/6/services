@@ -1,0 +1,71 @@
+.TH SERVICES 6
+.SH NAME
+services \- Inferno-specific service name data base
+.SH SYNOPSIS
+.B /services/cs/services
+.SH DESCRIPTION
+The services file contains a map between
+symbolic service names and Internet protocol port numbers.
+It is interpreted by the module
+.I ipsrv
+(see
+.IR srv (2)),
+on request by
+.IR cs (8)
+and
+.IR srv (8)
+during address translation.
+.PP
+The file
+.B /services/cs/services
+in the Inferno root is a simple text file with the same format
+as the Unix
+.B /etc/services
+file.
+There is an entry for each Inferno service name.
+Each entry is
+a single line containing at least two fields separated by blanks or tabs:
+.IP
+.I name
+\fIport\fP\fB/\fP\fIprotocol\fP
+[
+.I alias " ..."
+]
+.PP
+The character
+.RB ` # '
+introduces a comment to end of line.
+Blank lines are ignored.
+.I Name
+is a symbolic name for the service, starting with a letter and containing
+.BR a-z ,
+.BR 0-9
+and
+.B -
+(dash or hyphen).
+Each optional
+.I alias
+has a similar form and defines a synonym for the same service.
+.I Port
+is the port number on which to find or announce the service.
+.I Protocol
+is one of the protocols supported by
+.IR ip (3),
+typically
+.BR tcp ,
+.BR udp
+or
+.BR il .
+.SH EXAMPLE
+.EX
+.DT
+styx        6666/tcp                # Main file service
+mpeg        6667/tcp                # Mpeg stream
+rstyx       6668/tcp                # Remote invocation
+infdb       6669/tcp                # Database connection
+infweb      6670/tcp                # inferno web server
+infsigner   6671/tcp                # inferno signing services
+infcsigner  6672/tcp                # inferno signing services
+inflogin    6673/tcp                # inferno login service
+virgil      2202/udp  virgild       # inferno info
+.EE

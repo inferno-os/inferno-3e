@@ -1,0 +1,44 @@
+<HTML><HEAD>
+<TITLE>Inferno Contribution: proxy2</TITLE>
+</HEAD><BODY>
+<H3>Inferno Contribution: proxy2</H3>
+<h3> Simple HTTP proxy server </h3>
+
+This contribution from <a href="mailto:marcas1@mime.up8.edu">Marc Hufschmitt</a>
+ of Universite Paris implements a simple HTTP proxy server in Limbo. It listens on port 8080
+and logs all requests to a log file (./proxy.log).
+<p>
+The messages it displays are mainly in French, but they are quite easily translated,
+eg
+<p>
+<table>
+<tr>
+	<td>
+		J'ai recu un appel de <i>address</i>
+	</td>
+	<td>
+		I've received a call from <i>address</i>
+	</td>
+<tr>
+	<td>
+		Le client envoi <i>request</i>
+	</td>
+	<td>
+		The client requests <i>request</i>
+	</td>
+</tr>
+</table>
+
+<p>
+If it receives a request "STOP" (instead of a GET), it will ignore all further requests until
+it receives a START request. To send it a STOP request, telnet to port 8080 and type
+"STOP X". To restart it, use "START X".
+
+<HR>
+The following files are available for downloading:<TABLE BORDER="0">
+<TR>
+<TD><a href="proxy2.b">proxy2.b</a></TD>
+<TD>(5495 bytes)</TD>
+</TR>
+</TABLE>
+</BODY></HTML>

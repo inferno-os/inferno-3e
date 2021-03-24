@@ -1,0 +1,156 @@
+.TH SYS-EXCEPTION 2
+.SH NAME
+Exception, raise, rescue, rescued, unrescue \- exception handling
+.SH SYNOPSIS
+.EX
+include "sys.m";
+sys := load Sys Sys->PATH;
+
+Exception: adt
+{
+  name: string;  # name of exception
+  mod:  string;  # module
+  pc:   int;     # program counter
+};
+
+raise:    fn(s: string);
+rescue:   fn(s: string, e: ref Exception): int;
+rescued:  fn(flag: int, s: string);
+unrescue: fn();
+.EE
+.SH DESCRIPTION
+These functions provide exception handling in Limbo.
+.PP
+.B Exception
+communicates the nature of the exception.
+.B Exception.pc
+is the virtual machine program counter at the point of the raised exception,
+relative to the start of the module.
+.PP
+.B Raise
+throws an exception with the name
+.IR s ,
+and sets the error string for
+.IR sys-print (2)
+(the value of the format
+.BR %r )
+to
+.IR s .
+.PP
+.B Rescue
+installs a rescue block for exceptions matched by
+.IR s .
+If a matching exception occurs,
+.B rescue
+will return
+.BR Sys->EXCEPTION ;
+otherwise it returns
+.BR Sys->HANDLER .
+.I S
+matches an exception name when the two are equal,
+or
+.I s
+is a string (the prefix) followed by
+.BR * ,
+which matches any exception name starting with the same prefix.
+In particular,
+.B
+"*"
+.ft R
+matches all exceptions.
+Rescue blocks can only handle exceptions that are raised in the
+same thread.  If an exception needs to be handled in a spawned
+thread, a rescue block must be installed there.
+.IP
+.EX
+if(sys->rescue("fail:*", e) == Sys->EXCEPTION) {
+	# exception handling code ...
+	sys->rescued(Sys->EXIT, nil);
+}
+.EE
+.PP
+.B Rescued
+tells the system what to do after an exception has been handled, as
+specified by
+.IR flag :
+.TF ACTIVE
+.PD
+.TP
+.B ACTIVE
+Leave the handler installed; execution continues.
+.TP
+.B RAISE
+Re-raise this exception or raise a different one.
+If
+.I s
+is
+.BR nil ,
+the current exception is re-raised;
+otherwise, exception
+.I s
+is raised instead.
+.TP
+.B EXIT
+The thread exits.
+.TP
+.B ONCE
+Remove the handler; execution continues.
+For example:
+.RS
+.IP
+.EX
+if(sys->rescue("an exception", e) == Sys->HANDLER) {
+	# normal execution code here
+} else {
+	# handler code here
+	sys->rescued(Sys->ONCE, nil);  # removes the handler
+}
+.EE
+.RE
+.PP
+.B Unrescue
+removes the most recently installed handler and
+continues execution.
+.SH EXAMPLES
+The first example removes the handler if normal execution completes:
+.IP
+.EX
+if(sys->rescue("an exception", e) == Sys->HANDLER) {
+	# normal execution code here
+	sys->unrescue();
+} else {
+	# exception handling code here
+}
+.EE
+.PP
+The next example is a complete program that demonstrates the behaviour of exception handling by executing both the normal execution code and the handler code.
+.IP
+.EX
+implement Excep;
+include "sys.m";
+	sys: Sys;
+include "draw.m";
+Excep: module
+{
+	init:   fn(ctxt: ref Draw->Context, argv: list of string);
+};
+init(ctxt: ref Draw->Context, argv: list of string)
+{
+    sys = load Sys Sys->PATH;
+    e := ref sys->Exception;
+    if(sys->rescue("an exception", e) == Sys->EXCEPTION) {
+	   sys->print("rescue: exception\en");
+	   sys->print("e.name = %s\ene.mod = %s\ene.pc  = %d\en",
+	    		e.name, e.mod, e.pc);
+	   sys->rescued(Sys->ONCE, nil);
+    } else {
+	   sys->print("rescue: normal execution\en");
+	   sys->raise("an exception");
+   }
+   sys->print("raise: %r\en");
+   sys->raise("nasty thing");	# won't be handled
+}
+.EE
+.SH SEE ALSO
+.IR sh (1),
+.IR prog (3)

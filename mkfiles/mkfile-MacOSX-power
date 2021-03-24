@@ -1,0 +1,27 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		power
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	crvs
+
+AS=		cc -c
+ASFLAGS=
+
+CC=		cc -c
+CFLAGS=		-g -O2 -fvolatile -fvolatile-global -fvolatile-static\
+		-I$ROOT/MacOSX/power/include\
+		-I$ROOT/include\
+ 		-I/usr/X11R6/include
+
+LD=		cc
+LDFLAGS=	-L/usr/X11R6/lib\
+		-flat_namespace
+
+SYSLIBS=
+
+YACC=		yacc
+YFLAGS=		-d

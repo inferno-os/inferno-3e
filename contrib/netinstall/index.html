@@ -1,0 +1,775 @@
+<HTML><HEAD>
+<TITLE>Inferno Contribution: netinstall</TITLE>
+</HEAD><BODY>
+<H3>Inferno Contribution: netinstall</H3>
+<HEAD>
+<TITLE>Installation of the Inferno Software</TITLE>
+<META content="text/html; charset=utf-8" http-equiv=Content-Type>
+</HEAD>
+<BODY>
+<H1>Installation of  the Inferno Software</H1>
+<P>Inferno can run as either a native operating system or as a <EM>hosted </EM>virtual operating system. This
+document explains how to configure the system for basic networking when installing to a hosted environment.
+Third edition Inferno can run as a hosted virtual operating system on top of Plan 9, Unix or Windows. In
+this document, the term <EM>Unix </EM>is used to cover all supported variants,
+currently FreeBSD, Linux and Solaris, and
+the term <EM>Windows </EM>covers Microsoft Windows 95, Windows 98, Windows Nt and Windows 2000.
+
+<H2><B>1. Preparation</B></H2>
+
+You should ensure that there are at least 100 Mbytes of free space
+on the filesystem.
+Skip to the appropriate section below depending upon whether
+you obtain Inferno from a network download or from a CD-ROM.
+
+<H3><B>Installing from a Network Download</B></H3>
+
+To install the 'binary' version of Inferno from the network
+you will need to download two files: the Inferno component (<TT>inferno.tgz</TT>)
+and a platform component for your target machine
+(For example <TT>Plan9.tgz</TT> or <TT>Nt.tgz</TT>).
+<P>
+The component files are in <EM>gzip</EM>ed <EM>tar</EM> format and
+should both be unpacked into the same temporary directory. We will call
+this directory the Inferno <EM>media</EM> directory.
+<P>
+<DL>
+<DT><B>On Windows</B>
+<DD>Unpack the files with <EM>WinZip</EM> and remember to check the
+<TT>Use folder names</TT> tickbox in the WinZip Extract dialog box
+otherwise the archive directory hierarchy will not be preserved.
+<P>
+<DT><B>On Plan 9</B>
+<DD>Unpack the files with <EM>gzip</em> and <EM>tar</EM>:
+<DL><DT><DD>
+gunzip &lt;inferno.tgz | tar x
+<BR>
+gunzip &lt;Plan9.tgz | tar x
+</DL>
+<P>
+<DT><B>On Unix or Linux</B>
+<DD>Unpack the files with <EM>tar</EM> and use the <TT>-p</TT> option
+to ensure that the correct file permissions are taken from the
+archive file.
+If your <EM>tar</EM> has no <TT>-p</TT> option,
+you should run:
+<DL><DT><DD>
+umask 0
+</DL>
+to disable masking of the file permissions before running <EM>tar</EM>.
+For example, to unpack the archive on Linux using the
+<TT>-z</TT> option to invoke <EM>gzip</EM>:
+<DL><DT><DD>
+tar xzpf inferno.tgz
+<BR>
+tar xzpf Linux.tgz
+</DL>
+On systems for which <EM>tar</EM> has no <TT>-z</TT> option, you must use <EM>gzip</EM> directly:
+<DL><DT><DD>
+gunzip &lt;inferno.tgz | tar xpf -
+<BR>
+gunzip &lt;Linux.tgz | tar xpf -
+</DL>
+</DL>
+Once you unpack the component files you should see (at least) the following
+files and directories in the media directory:
+<DL><DT><DD><PRE>
+LICENCE
+README.html		# this document
+dis/
+install/
+</PRE></DL>
+In addition, you should see a platform subdirectory, named <TT>Plan9</TT>,
+<TT>Linux</TT>, or <TT>Nt</TT> depending upon which
+platform component you downloaded.
+<P>
+Once you have completed the installation you can delete the media
+directory and its contents.
+
+<H3><B>Installing from a CD-ROM</B></H3>
+
+To install the `binary' version of Inferno from a CD-ROM you need to find
+the Inferno media directory on the CD-ROM.
+Unless Inferno is sharing the CD-ROM with other software
+it will be the top level directory on the CD-ROM.
+<P>
+The Inferno media directory is likely to contain (at least) the following
+files and directories:
+<DL><DT><DD><PRE>
+LICENCE
+Linux/
+Nt/
+Plan9/
+README.html		# this document
+dis/
+install/
+mnt/
+n/
+tmp/
+</PRE></DL>
+
+The CD-ROM can be used to install Inferno to more than one platform.
+The media directory contains a subdirectory for each of the platforms
+supported by the software on the CD-ROM.
+
+<H3><B>A Note on the Media Directory</B></H3>
+
+This directory contains a minimal Inferno <EM>root filesystem</EM>
+that is used by the installation program.
+The <TT>install</TT> subdirectory contains an installation program for each platform,
+usually in the form of a shell script;
+for Windows systems, it is a setup.exe program.
+Each platform subdirectory
+(<TT>Plan9</TT>, <TT>Linux</TT>, or <TT>Nt</TT>)
+includes the Inferno executable
+<TT>emu</TT> (or <TT>emu.exe</TT> for Windows) for that platform
+in the directory:
+
+<DL><DT><DD>
+<EM>platform</EM><TT>/</TT><EM>architecture</EM><TT>/bin</TT>
+</DL>
+
+The installation script (or <TT>setup.exe</TT> on Windows) uses a cut-down
+Inferno image to unpack the full installation.
+
+<H2><B>2. Performing the Installation</B></H2>
+First, read the licence in the file <TT>LICENCE</TT>.
+If you do not agree to the terms and conditions
+of the licence you must not install the Inferno software and should remove any downloaded Inferno files.
+<P>
+You need to decide on a suitable location for Inferno; if you are installing on a Windows
+platform the installation program (<TT>setup.exe</TT>) will create this directory
+for you, on other platforms you should ensure that the directory exists and has suitable
+access permissions.
+<P>
+The usual Inferno installation directory is <TT>/usr/inferno</TT> for Plan 9 and Unix
+systems and <TT>c:\users\inferno</TT> on Windows systems. This directory will
+form the root of the Inferno filesystem; the installation program will install files
+into and below this <EM>inferno_root</EM> directory.
+
+<H3><B>Windows</B></H3>
+To install Inferno on a Windows platform you should:
+<OL>
+<LI>Run the <TT>setup.exe</TT> program located in the <TT>install</TT>
+subdirectory of the media directory.
+<LI>Enter the pathname of the chosen <EM>inferno_root</EM> directory and press <TT>Enter</TT>.
+</OL>
+The installation program will then perform the following tasks:
+<OL>
+<LI>Execute <TT>Nt\386\bin\emu.exe</TT>
+to unpack the Inferno and Nt components.
+<LI>Copy the <TT>LICENCE</TT> file to the root of the Inferno filesystem.
+<LI>Rename the file <TT>emu.new</TT> to <TT>emu.exe</TT>
+in the <TT>Nt\386\bin</TT> directory of the new Inferno filesystem.
+<LI>Create an entry in the Windows registry for the location of the Inferno root directory.
+<LI>Create a Windows Start Menu shortcut to <TT>emu.exe</TT>
+entitled: <EM>Vita Nuova Inferno</Em>.
+</OL>
+When installing on Windows NT or Windows 2000, the installation program determines
+if the current user belongs to the
+<TT>Administrators</TT>
+group.
+If so, the Start Menu entry is created in the
+<TT>All Users</TT>
+profile, otherwise it is created in the user's private profile.
+On Windows 95 and Windows 98, if the user has a private profile the
+Start Menu entry is created there,
+otherwise it is created in the main system Start Menu.
+
+<H3><B>Plan 9</B></H3>
+To install Inferno on the Plan 9 platform you should:
+<OL>
+<LI>Turn permission checking off with <TT>disk/kfscmd allow</TT>.
+<LI>Edit the <TT>/adm/users</TT> file.
+The files in the Inferno archive have been stored with owner <TT>inferno</TT>
+and group <TT>inf</TT>. To preserve the same owner and group you should add a 
+user <TT>inferno</TT> and group <TT>inf</TT> to the <TT>/adm/users</TT> file.
+The entries would look something like this:
+<DL><DT><DD><PRE>
+3:inferno:inferno:
+10003:inf::inferno
+</PRE></DL>
+You will need to change the first number on each line to ensure that it does not clash with the number
+of an existing entry.
+<LI>Run <EM>kfscmd</EM> to cause <EM>kfs</EM> to re-read <TT>/adm/users</TT>.
+<DL><DT><DD><PRE>
+disk/kfscmd user
+</PRE></DL>
+<LI>Run 
+<DL><DT><DD><PRE>
+<TT>rc /</TT><EM>install_path</EM><TT>/install/Plan9.rc -u </TT> <EM>inferno_root</EM>
+</PRE></DL>
+Where <EM>install_path</EM> is the full pathname to the
+media directory and <EM>inferno_root</EM> is the chosen Inferno root directory.
+The installation program will then perform the following tasks:
+<OL>
+<LI>Execute <TT>Plan9/$cputype/bin/emu</TT>
+to unpack the Inferno and Plan 9 components.
+<LI>Copy the <TT>LICENCE</TT> file to the root of the Inferno filesystem.
+<LI>Rename the file <TT>emu.new</TT> to <TT>emu</TT>
+in the <TT>Plan9/$cputype/bin</TT> directory of the new Inferno filesystem.
+</OL>
+The <TT>-u</TT>
+option causes the ownership and group membership of the installed files
+to be taken from the archive. If you omit it, the files will be owned by you
+and have group <TT>sys</TT>.
+<LI>Make sure that the window is able to scroll to display the list of directories
+that the installation software prints. You may need to select the <TT>scroll</TT>
+option from the menu displayed when you click on the middle mouse button
+in the output window to enable this.
+<LI>Turn permission checking back on again with <TT>disk/kfscmd disallow</TT>.
+</OL>
+
+<H3><B>Unix or Linux</B></H3>
+On Posix systems, files installed from the distribution will have
+owner and group determined by the owner and group of the user
+who performs the installation.
+The convention, here, is to create a new user, <TT>inferno</TT>,
+belonging to a new group, <TT>inf</TT> and to become that user
+before installing.
+<P>
+To install Inferno on a Unix or Linux platform you should:
+<OL>
+<LI>Optionally, edit the system <EM>user</EM> and <EM>group</EM> files
+(probably <TT>/etc/passwd</TT> and <TT>/etc/group</TT>)
+to create
+a user <TT>inferno</TT> and a group <TT>inf</TT>.
+Then become user <TT>inferno</TT> with:
+
+<DL><DT><DD><TT>su inferno</TT></DL>
+
+<LI>Run <TT>sh /</TT><EM>install_path</EM><TT>/install/<EM>platform</EM><TT>-</TT><EM>arch</EM>.sh </TT> <EM>inferno_root</EM>.
+</OL>
+Where <EM>platform</EM> and <EM>arch</EM> are one of the supported combinations of
+Unix variant and CPU architecture,
+<EM>install_path</EM> is the full pathname to the
+media directory and <EM>inferno_root</EM> is the chosen <EM>inferno_root</EM> directory.
+The installation program will then perform the following tasks:
+<OL>
+<LI>Execute <EM>platform</EM><TT>/</TT><EM>arch</EM><TT>/bin/emu</TT>
+to unpack the Inferno and <EM>platform</EM> components.
+<LI>Copy the <TT>LICENCE</TT> file to the root of the Inferno filesystem.
+<LI>Rename the file <TT>emu.new</TT> to <TT>emu</TT>
+in the <EM>platform</EM><TT>/</TT><EM>arch</EM><TT>/bin</TT> directory of the new Inferno filesystem.
+</OL>
+
+
+<H2><B>3. Running Inferno</B></H2>
+
+Inferno host executables are kept in a directory corresponding to the combination of host
+operating system and CPU architecture - the Inferno <TT>bin</TT> directory.
+
+<DL><DT><DD><EM>inferno_root</EM><TT>/</TT><EM>host_os</EM><TT>/</TT><EM>host_arch</EM><TT>/bin</TT></DL>
+
+Plan 9 users should add a line to their <TT>lib/profile </TT>file that binds this directory after their <TT>/bin </TT>directory.
+
+<DL><DT><DD><TT>bind -a /usr/inferno/Plan9/$cputype/bin /bin</TT></DL>
+
+The bind is done after the existing <EM>bin </EM>directory to avoid hiding your existing Plan 9 compilers. If, at a later
+stage, you build either the hosted or native Inferno kernels you should ensure that the Inferno compilers are
+used rather than the Plan 9 compilers. The differences between the two compiler suites are likely to be
+reduced in future releases. On Windows systems the <EM>host_os </EM>is always <TT>Nt </TT>and <EM>host_arch </EM>is always <TT>386</TT>
+and the installation program will create an entry on the Start Menu to invoke Inferno. For Unix systems or
+Windows systems in which Inferno will be started from a command shell, the environment variable <TT>PATH
+</TT>should be set to include the Inferno <TT>bin </TT>directory. For Windows 95 and Windows 98 this should be done
+in the <TT>\autoexec.bat </TT>file by adding a line like
+
+<DL><DT><DD><TT>PATH=&quot;c:\users\inferno\Nt\386\bin&quot;;%PATH%</TT></DL>
+
+You will need to reboot Windows to have the system re-read the <TT>\autoexec.bat </TT>file. For Windows NT
+and Windows 2000 modify the <TT>Path </TT>environment variable through <EM>Control Panel -&gt; System -&gt;
+Environment</EM>. For Unix this should be done in your <TT>.profile </TT>file by adding a line like
+<DL><DT><DD><TT>PATH=&quot;/usr/inferno/Linux/386/bin:$PATH&quot;
+</TT></DL>Don't forget to ensure that <TT>PATH </TT>is exported. You may need to log out and back in again for these changes
+to take effect.
+
+<DL><DT><DD><b>&#164; Step 1: Start Inferno.</b></DL>
+
+Hosted inferno is run by invoking an executable called <EM>emu</EM>.
+On Windows, select the Inferno option from the Start Menu. This will invoke <EM>emu </EM>with appropriate arguments to find its files in <EM>inferno_root</EM>. If you need to change any of the options passed to <EM>emu </EM>when
+invoked from the Start Menu you need to do this by clicking the right mouse button on the Windows task
+bar and choosing <EM>Properties -&gt; Start Menu Programs -&gt; Advanced </EM>to modify the shortcut used for Inferno.
+For Unix and Plan 9, you will need to tell <EM>emu </EM>where to find the Inferno file tree by passing it the
+<TT>-r</TT><EM>rootpath</EM> command line option. For example
+
+<DL><DT><DD><TT>emu -r/usr/john/inferno</TT></DL>
+
+Without the <TT>-r </TT>option it will look for the file tree in <TT>/usr/inferno </TT>on Plan 9 and Unix and <TT>\users\inferno </TT>on the current drive for Windows. By default, when using graphics, <EM>emu </EM>will use a
+window with a resolution of 640 x 480 pixels.
+To use a larger resolution you will need to pass <EM>emu </EM>the
+<TT>-g</TT><EM>Xsize</EM><TT>x</TT><EM>Ysize </EM>command line option. So, for example, to invoke <EM>emu </EM>as above but with a resolution of
+1024 x 768 pixels the full command line would be
+
+<DL><DT><DD><TT>emu -r/usr/john/inferno -g1024x768</TT></DL>
+
+When invoked in this way <EM>emu </EM>displays a command window running the Inferno shell <TT>/dis/sh.dis</TT>. To
+avoid typing the command line options each time you invoke <EM>emu </EM>you can store them in the environment
+variable <TT>EMU </TT>which is interrogated when <EM>emu </EM>is started and might as well be set along side the <TT>PATH </TT>environment variable if the same configuration options are to be used on each invocation.
+For Windows:
+
+<DL><DT><DD><TT>set EMU=&quot;-rd:\users\john\inferno -g1024x768&quot;</TT></DL>
+
+For Plan 9:
+
+<DL><DT><DD><TT>EMU=(-r/usr/john/inferno -g1024x768)</TT></DL>
+
+For Unix:
+
+<DL><DT><DD><TT>EMU=&quot;-r/usr/john/inferno -g1024x768&quot;</TT></DL>
+	
+An alternative to using the <TT>EMU </TT>environment variable is to place the correct invocation in a script
+file (or batch file, for Windows) and invoke that instead of running <EM>emu </EM>directly. It is important to note that
+for Windows the <TT>-r </TT>option also serves to indicate both the drive and directory on to which the software has
+been installed. Without a drive letter the system will assume the current drive and will fail if the user
+changes to an alternative drive. Once the environment variables or scripts are set up, as described above,
+invoking
+
+<DL><DT><DD><TT>emu</TT></DL>
+
+or the appropriate script file, should result in output which look something like this
+
+<DL><DT><DD><PRE>Inferno Third Edition (4 May 2000) main (pid=112260) interp
+Initialize Dis: /dis/emuinit.dis
+; 
+</PRE></DL>
+
+You are now running third edition Inferno, built on May 4th 2000 and the word <TT>interp </TT>means that the
+Inferno Dis virtual machine is interpreting Dis instructions. You can add a further option <TT>-c1 </TT>(see the
+<EM>emu</EM>(1) manual page) to cause <EM>emu </EM>to start up in <EM>compile </EM>mode in which the JIT compiler is automatically
+invoked to compile all Dis operations to native machine instructions on demand. In <EM>compile </EM>mode most
+programs will run significantly faster. Whether in compiled or interpreted mode you should now have a
+functional hosted Inferno system. When Inferno starts the initial <TT>/dis/sh.dis </TT>it reads commands from
+the file <TT>/lib/sh/profile </TT>before becoming interactive. See the manual pages for the shell <EM>sh</EM>(1) to learn
+more about tailoring the initial environment. The semi-colon is the default shell prompt. From this command window you should be able to see the installed Inferno files and directories
+
+<DL><DT><DD><TT>lc /</TT></DL>
+
+The command <EM>lc </EM>presents the contents of its directory argument in columnar fashion to standard output in
+the command window.
+<DL><DT><DD><PRE>
+; lc /
+FreeBSD/  Plan9/    dis/      lib/       mkfiles/  nvfs/
+Hp/       Solaris/  env/      licencedb/ mnt/      prog/
+Irix/     acme/     fonts/    locale/    module/   services/
+LICENCE   appl/     icons/    mail/      n/        tmp/
+Linux/    chan/     install/  man/       net/      usr/
+Nt/       dev/      keydb/    mkconfig   notice    wrap/
+;
+</PRE></DL>
+
+Only the files and directories in and below the <EM>inferno_root </EM>directory on the host filesystem are immediately visible to an Inferno process; these files are made visible in the root of the Inferno file namespace. If
+you wish to import or export files from and to the host filesystem you will need to use tools on your host to
+move them in or out of the Inferno visible portion of your host filesystem (see the manual pages <EM>os</EM>(1) and
+<EM>cmd</EM>(3) for an interface to host commands). From this point onwards in this paper all file paths not qualified with <EM>inferno_root </EM>are assumed to be in the Inferno namespace. Files created in the host filesystem will
+be created with the user id of the user that started <EM>emu </EM>and on Unix systems with that user's group id.
+
+<H2><B>4. Running the <EM>wm </EM>Window Manager</B></H2>
+
+Many Inferno programs run under the <EM>wm </EM>window manager.
+Inferno has a simple editor, <EM>wm/edit</EM>,
+that can be used to edit the inferno configuration files.
+
+<DL><DT><DD><B>&#164; Step 2: Start the window manager.</B></DL>
+
+Invoke <EM>wm </EM>by typing
+
+<DL><DT><DD><TT>wm/wm</TT></DL>
+
+You should see a new window open with a blue background and a small
+<EM>Vita Nuova </EM>logo in the bottom left
+hand corner. Click on the logo with mouse button 1 to reveal a small menu.
+Selecting the <EM>Edit </EM>entry will
+start <EM>wm/edit</EM>.
+In common with most <EM>wm </EM>programs the editor has three small buttons
+in a line at its top right hand corner. Clicking on the X button, the right most button,
+will close the program down. The left most of
+the three buttons will allow the window to be resized - after clicking it drag the window from a point near
+to either one of its edges or one of its corners. The middle button will minimise the window, creating an
+entry for it in the application bar along the bottom of the main <EM>wm </EM>window. You can restore a minimised
+window by clicking on its entry in the application bar.
+The initial <EM>wm </EM>configuration is determined by the
+contents of the shell script <TT>/lib/wmsetup </TT>(see <EM>sh</EM>(1)).
+
+<DL><DT><DD><B>&#164; Step 3: Open a shell window.</B></DL>
+
+Choose the <EM>shell </EM>option from the menu to open up a shell window.
+The configuration of Inferno will be done from this shell window.
+
+<H2><B>5. Manual Pages</B></H2>
+
+Manual pages for all of the system commands are available from a shell window. Use the <EM>man </EM>or
+<EM>wm/man </EM>commands. For example,
+
+<DL><DT><DD><TT>man wm</TT></DL>
+
+will give information about <EM>wm</EM>. And
+
+<DL><DT><DD><TT>man man</TT></DL>
+
+will give information about using <EM>man</EM>. <EM>Wm/man </EM>makes use of
+the Tk text widget to produce slightly more attractive output than <EM>man</EM>.
+Here, and in other Inferno documentation you will see references to manual
+page entries of the form <EM>command</EM><TT>(</TT><EM>section</EM><TT>)</TT>.
+
+You can display the manual page for the command by running
+
+<DL><DT><DD><TT>man </TT><EM>command</EM></DL>
+
+or
+
+<DL><DT><DD><TT>man </TT><EM>section command</EM></DL>
+
+if the manual page appears in more than one section.
+
+<H2><B>6. Initial Namespace</B></H2>
+
+The initial Inferno namespace is built by placing the root device '#/' (see <EM>root</EM>(3)) at the root of the namespace and binding
+<DL>
+<DT><DD>i) the host filesystem device '#U' (see <EM>fs</EM>(3)) containing the <EM>inferno_root </EM>subtree of the host filesystem at the root of the Inferno filesystem,
+<DT><DD>ii) the console device '#c' (see <EM>cons</EM>(3)) in <TT>/dev</TT>,
+<DT><DD>iii) the prog device '#p' (see <EM>prog</EM>(3)) onto <TT>/prog</TT>,
+<DT><DD>iv) the IP device '#I' (see <EM>ip</EM>(3)) in <TT>/net</TT>, and
+<DT><DD>v) the environment device '#e' (see <EM>env</EM>(3)) at <TT>/dev/env</TT>.
+</DL>
+You can see the sequence of commands required to construct the current namespace by running
+
+<DL><DT><DD><TT>ns</TT></DL>
+
+To use IP networking, the IP device (<EM>ip</EM>(3)) must have been bound into <TT>/net</TT>. Typing
+
+<DL><DT><DD><TT>ls -l /net</TT></DL>
+
+(see <EM>ls</EM>(1)) should result in something like
+
+<DL><PRE>
+<DT><DD>dr-xr-xr-x I    0 bootes bootes 0 Feb 02 14:48 /net/tcp
+<DT><DD>dr-xr-xr-x I    1 bootes bootes 0 Feb 02 14:48 /net/udp
+</PRE></DL>
+
+We can now configure Inferno to allow secure connections to other Inferno systems. First we will start a
+signer process which will generate certificates for both the system making a connection and the system
+receiving the connection. If there is only one machine in your Inferno network then the same machine will
+be user as client, server and certificate signer.
+
+<H2><B>7. Connection Server</B></H2>
+
+The connection server (see <EM>cs</EM>(8) and <EM>db</EM>(6)) translates symbolic network names and services into
+instructions for connecting to a given service. The file <TT>/services/cs/db </TT>defines a mapping from
+machine names of the form <TT>$</TT><EM>service </EM>to either a network address or a numeric address. The connection
+server will convert such a machine name using this file into either a numeric address or a machine name. A
+typical <TT>/services/cs/db </TT>file will look something like this
+
+<DL><PRE>
+<DT><DD>$SIGNER          doppio
+<DT><DD>$FILESERVER      rotta
+<DT><DD>$MAILSERVER      doppio
+<DT><DD>$PROXY           pox
+</PRE></DL>
+
+Network and service names are passed through to the host for conversion to numeric addresses and port
+numbers. If the host is unable to convert a service name the connection server will attempt to convert the
+name using mappings of service and protocol names to Internet port numbers in the file
+<TT>/services/cs/services </TT>which should contain at least the following entries
+
+<DL><PRE>
+<DT><DD>styx        6666/tcp          # Main file service
+<DT><DD>mpeg        6667/tcp          # Mpeg stream
+<DT><DD>rstyx       6668/tcp          # Remote invocation
+<DT><DD>infdb       6669/tcp          # Database connection
+<DT><DD>infweb      6670/tcp          # inferno web server
+<DT><DD>infsigner   6671/tcp          # inferno signing services
+<DT><DD>infcsigner  6672/tcp          # inferno signing services
+<DT><DD>inflogin    6673/tcp          # inferno login service
+<DT><DD>virgil      2202/udp virgild  # inferno info
+</PRE></DL>
+
+For the moment, leave this file as it is. You will need to modify this file, at some point in the future, if you
+add new services to Inferno and want to refer to them by name.
+
+<DL><DT><DD><B>&#164; Step 4: Start the connection server.</B></DL>
+
+To run the connection server, type
+
+<DL><DT><DD><TT>lib/cs</TT></DL>
+
+You should now see a new file in the <TT>/net </TT>directory called <TT>cs</TT>. Run the command
+
+<DL><DT><DD><TT>ls /net</TT></DL>
+
+You should see the following output
+
+<DL><PRE>
+<DT><DD>/net/cs
+<DT><DD>/net/tcp
+<DT><DD>/net/udp
+</PRE></DL>
+
+Before an Inferno machine can establish a connection to an Inferno service on another machine, each needs
+to obtain a certificate from a common signer. To bootstrap this process we will configure this machine as a
+signer.
+<H2><B>8. Network Services</B></H2>
+The command <EM>srv </EM>is used to start listeners for local network servers (see <EM>srv</EM>(8)). <EM>Srv </EM>starts a listener
+for each service configured in <TT>/services/server/config</TT>.
+
+<DL><PRE>
+<DT><DD>S infsigner    tcp /dis/lib/signer.dis 
+<DT><DD>S infcsigner   tcp /dis/lib/countersigner.dis
+<DT><DD>S inflogin     tcp /dis/lib/logind.dis 
+<DT><DD>S styx         tcp /dis/lib/styxd.dis nossl clear sha md5 rc4 sha/rc4
+<DT><DD>S rstyx        tcp /dis/lib/rstyxd.dis nossl clear sha md5 rc4 sha/rc4
+<DT><DD>S infdb        tcp /dis/lib/dbsrv.dis    nossl clear sha md5 rc4 sha/rc4
+<DT><DD>S virgil       udp /dis/lib/virgild.dis
+<DT><DD>M 67           udp /dis/lib/bootp.dis
+<DT><DD>M 69           udp /dis/lib/tftpd.dis
+</PRE></DL>
+
+Documentation for these servers can be found in section 8 of the Programmers Manual (Volume 1). Start the listeners on this machine by running <EM>srv</EM>.
+
+<DL><DT><DD><B>&#164; Step 5: Start the network listener services.</B></DL>
+
+Type
+
+<DL><DT><DD><TT>lib/srv</TT></DL>
+
+Your servers will now be running. To confirm this type
+
+<DL><DT><DD><TT>netstat</TT></DL>
+
+<EM>Netstat </EM>prints information about network connections. You should see several lines of output, each one
+describing an announced TCP or UDP service. Depending upon the contents of your
+<TT>/services/server/config </TT>file you should see something which looks like this
+
+<DL><PRE>
+<DT><DD>tcp/0     inferno     200.1.1.89!6669       0.0.0.0!0       Announced
+<DT><DD>tcp/1     inferno     200.1.1.89!6668       0.0.0.0!0       Announced
+<DT><DD>tcp/2     inferno     200.1.1.89!6666       0.0.0.0!0       Announced
+<DT><DD>tcp/3     inferno     200.1.1.89!6673       0.0.0.0!0       Announced
+<DT><DD>tcp/4     inferno     200.1.1.89!6672       0.0.0.0!0       Announced
+<DT><DD>tcp/5     inferno     200.1.1.89!6671       0.0.0.0!0       Announced
+<DT><DD>udp/0     inferno     200.1.1.89!2202       0.0.0.0!0       Announced
+</PRE></DL>
+
+Each line corresponds to a network connection: the connection name, the name of the user running the
+server, the address of the local end of the connection, the address of the remote end of the connection, and
+the connection status. The connection name is actually the protocol and conversation directory in <TT>/net</TT>.
+The connection addresses are all of the form <EM>host</EM><TT>!</TT><EM>port </EM>for these IP based services, and the remote
+addresses are not filled in because they all represent listening services that are in the <TT>Announced </TT>state. In
+this example the fourth line shows a TCP service listening on port 6673. Examining
+<TT>/services/cs/services </TT>with <TT>grep </TT>(see <EM>grep</EM>(1)) shows that the listener on port 6673 is the Inferno
+login service.
+
+<DL><DT><DD><TT>grep 6673 /services/cs/services</TT></DL>
+
+gives
+
+<DL><PRE>
+<DT><DD>inflogin     6673/tcp          # inferno login service
+</PRE></DL>
+
+Before the signing service can be used to generate certificates some configuration is required. The signer
+needs a public and private key-pair and a database of user names and passwords.
+
+<H2><B>9. Configuring a Signer</B></H2>
+
+To use authenticated connections we need to set up a signer to generate certificates for users (see
+<EM>createsignerkey</EM>(8) and <EM>signer</EM>(8)). For two machines to communicate securely they must both have
+obtained a certificate from the same signer. Choose an Inferno machine to become the signer. If this is the
+first or only Inferno machine on your network then make this machine the signer.
+
+<DL><DT><DD><B>&#164; Step 6: Generate a signer key.</B></DL>
+
+On the signer machine run
+
+<DL><DT><DD><TT>lib/createsignerkey </TT><EM>name</EM></DL>
+
+In place of <EM>name </EM>enter the network name of the signer. This value will appear as the signer name in each
+certificate generated by the signer. <EM>Createsignerkey </EM>creates public and private keys that are used by the
+signer when generating certificates.
+
+<DL><DT><DD><B>&#164; Step 7: Enter user names and secrets.</B></DL>
+
+For each user to be authenticated by the signer run
+
+<DL><DT><DD><TT>changelogin </TT><EM>username</EM></DL>
+
+You will be prompted to supply a secret (i.e. password) and expiration date. The expiration date will be
+used as the expiration date of certificates generated for that user. <EM>Changelogin </EM>(see <EM>changelogin</EM>(8)) will
+create and update entries in the file <TT>/keydb/password</TT>. For the signer to generate a certificate there
+must be at least one entry in the password file. If you are not sure at this stage of the names of the users
+that you want to authenticate then create an entry for the user <TT>inferno</TT>.
+
+<H2><B>10. Establishing a Secure Connection</B></H2>
+
+To establish a secure connection between two machines, each needs to have a certificate signed by a common signer (which need not be a third machine). If you have only one Inferno machine you can experiment with secure connections by making the same machine signer, server and client.
+
+<DL><DT><DD><B>&#164; Step 8: Generate a server certificate.</B></DL>
+
+On the server machine, ensure that <TT>lib/cs </TT>is running. You will need it if you refer to your signer by hostname instead of IP address. If in doubt, or if it is not running, type
+
+<DL><DT><DD><TT>lib/cs</TT></DL>
+
+On the server machine, use <EM>getauthinfo</EM>(8) to obtain a certificate and save it in a file named <TT>default </TT>by running
+
+<DL><DT><DD><TT>getauthinfo default</TT></DL>
+
+<EM>Getauthinfo </EM>will prompt for the address of your signer and for a remote username and password combination. <EM>Getauthinfo </EM>will connect to the <EM>inflogin </EM>service on the signer and authenticate you against its user and
+password database, <TT>/keydb/password</TT>, using the username and password that you entered. Answer
+<TT>Yes </TT>to the question that asks if you want to save the certificate in a file. <EM>Getauthinfo </EM>will save a certificate
+in the file <TT>/usr/</TT><EM>user</EM><TT>/keyring/default </TT>where <EM>user </EM>is the name in <TT>/dev/user</TT>.
+
+<DL><DT><DD><B>&#164; Step 9: Generate a client certificate.</B></DL>
+
+Obtain a certificate for the client in the same way. Type
+
+<DL><DT><DD><TT>getauthinfo default</TT></DL>
+
+If you wish you can obtain a certificate for use with a specific server by storing it in a file whose name
+exactly matches the network address of the server
+
+<DL><DT><DD><TT>getauthinfo tcp!</TT><EM>hostname</EM></DL>
+
+<EM>Getauthinfo </EM>stores the certificate in the file <TT>/usr/</TT><EM>user</EM><TT>/keyring/</TT><EM>keyname </EM>where <EM>user </EM>is the name in
+<TT>/dev/user </TT>and <EM>keyname </EM>is the argument given to <EM>getauthinfo</EM>. Again, answer <TT>Yes </TT>to the question that
+asks if you want to save the certificate in a file. Now that both client and server have a certificate obtained
+from the same signer it is possible to establish a secure connection between them. If you have only one
+Inferno system you can still test the configuration by using the same machine as both client and server.
+Alternatively, start a second copy of <EM>emu </EM>on the same machine and treat one as the server and one as the
+client.
+
+<DL><DT><DD><B>&#164; Step 10: Make an authenticated connection.</B></DL>
+
+On the server, make sure that <EM>srv </EM>is running, type
+
+<DL><DT><DD><TT>netstat</TT></DL>
+
+you should see a line for the TCP service listening on port 6666.
+
+<DL><PRE>
+<DT><DD>tcp/2     inferno     200.1.1.89!6666       0.0.0.0!0       Announced
+</PRE></DL>
+
+If you do not see any output, start <EM>srv </EM>by running
+
+<DL><DT><DD><TT>lib/srv</TT></DL>
+
+The listener on port 6666 is expecting to serve the Inferno file protocol <EM>Styx </EM>to export a namespace.
+
+<DL><DT><DD><TT>grep 6666 /services/cs/services</TT></DL>
+
+Gives
+<DL><DT><DD><PRE>styx        6666/tcp          # Main file service</PRE></DL>
+
+The line for the <EM>styx </EM>service in the file <TT>/services/server/config </TT>shows that the server
+<TT>/dis/lib/styxd.dis </TT>is listening on port 6666. The namespace that <EM>styxd </EM>serves is the one that it inherited when it was started with <EM>srv</EM>.
+
+On the client, make sure that <EM>Cs </EM>is running by typing
+
+<DL><DT><DD><TT>lib/cs</TT></DL>
+
+Now that <TT>lib/cs </TT>is running on the client and <TT>lib/srv </TT>is running on the server you can test the service.
+On the client, confirm that <TT>/n/remote </TT>is an empty directory with
+
+<DL><DT><DD><TT>lc /n/remote</TT></DL>
+
+On the client, you can now mount the namespace that <EM>styxd </EM>is serving on the server onto the client directory
+<TT>/n/remote </TT>by typing
+
+<DL><TT>
+<DT><DD>mount    tcp!</TT><EM>serveraddr </EM><TT>/n/remote
+</TT></DL>
+
+Where <EM>serveraddr </EM>is the IP address of the server or a name which the host can resolve to the IP address of the server. Now
+
+<DL><DT><DD><TT>lc /n/remote</TT></DL>
+
+should reveal the files and directories in the namespace being served by <EM>styxd</EM>.
+Those files are now also visible in the namespace of your shell.
+You will notice that these changes only affect the shell in which you
+ran the <EM>mount </EM>command - other processes are unaffected.
+You can create, remove or modify files and directories in and under <TT>/n/remote </TT>much as you can any other file or directory in your namespace. In fact, in
+general, a process does not need to know whether a file actually resides locally or remotely.
+You can unmount the mounted directory with <EM>unmount</EM>. Type
+
+<DL><DT><DD><TT>unmount /n/remote</TT></DL>
+
+You can confirm that it has gone by running
+
+<DL><DT><DD><TT>ls /n/remote</TT></DL>
+
+All connections made by Inferno are authenticated. The default connection made by <EM>mount </EM>is authenticated
+but does not use SSL. The arguments passed to <EM>styxd </EM>in its entry in <TT>/services/server/config
+</TT>
+
+<DL><PRE>
+<DT><DD>S rstyx       tcp /dis/lib/rstyxd.dis nossl clear sha md5 rc4 sha/rc4
+</PRE></DL>
+
+define the different combinations of security algorithms that <EM>styxd </EM>is prepared to accept. You can pass an
+argument to <EM>mount </EM>to specify a more secure connection. The <TT>-C </TT>option to <EM>mount </EM>can be used to specify a hashing and an encryption algorithm
+to be applied to the connection.
+
+<DL><DT>
+<DD><B>&#164; Step 11: Make a secure authenticated connection.
+</B></DL>
+
+For example,
+
+<DL><TT>
+<DT><DD>mount    -C sha/rc4 tcp!</TT><EM>serveraddr </EM><TT>/n/remote
+</TT></DL>
+
+will make an authenticated connection to the machine given by <EM>serveraddr </EM>using SHA hashing for message
+digesting and RC4 for encryption and mount the namespace served by the
+server's <EM>styx </EM>service on the client
+directory <TT>/n/remote</TT>.
+
+
+<H2><B>11. Adding new users</B></H2>
+
+Every inferno process has an associated <EM>user name</EM>.
+At boot time the user name is set equal to your
+login name on the host operating system.
+You can change the user name by writing the new user name to
+the file <TT>/dev/user</TT>. This is a one time operation; once the user name has been changed from the original
+it cannot be changed again in that process. The user name is used to select the directory in which programs
+like <EM>mount </EM>search for certificates. When you attach to a server on another system the user name is passed
+across to the remote system as part of the attach procedure allowing the remote system to assign the correct
+ownership to files created on the remote server. The <EM>wm </EM>window manager program <EM>wm/logon </EM>allows a user
+to login to the local Inferno system before running the main window manager program <EM>wm/wm</EM>.
+
+<DL><DT><DD><B>&#164; Step 12: Re-start Inferno.</B></DL>
+
+You should now close down any instances of <EM>emu </EM>that you are currently running. The quickest way to do
+this is to type <EM>control-c </EM>in the emu window in which you ran <EM>wm/wm</EM>. Start a new <EM>emu</EM>, as before, by either
+running
+
+<DL><DT><DD><TT>emu</TT></DL>
+
+or by choosing the appropriate entry from your Start Menu on Windows machines.
+This time, run
+
+<DL><DT><DD><TT>wm/logon</TT></DL>
+
+and log in as user <EM>inferno</EM>. When you log in <EM>wm/logon </EM>will change directory to <TT>/usr/inferno </TT>and then
+write the name <TT>inferno </TT>to <TT>/dev/user</TT>. If this is the first time that you have logged on as user <EM>inferno
+</EM>to this machine it will display a licence. If the file <TT>/usr/inferno/namespace </TT>exists it will be used to
+construct a new namespace for the user based on the commands that it contains (see <EM>newns</EM>(2)). <EM>Logon </EM>will
+then will then start <EM>wm/wm</EM>.
+
+<H2><B>12. What next</B></H2>
+
+You should now have a fully functional Inferno system. You will need to have a three button mouse to use <EM>acme</EM>, <EM>wm</EM>, or <EM>plumbing</EM>.
+To learn more you could start with the manual pages for:
+<EM>intro</EM>(1), <EM>emu</EM>(1), <EM>wm</EM>(1),
+<EM>wm-misc</EM>(1), <EM>sh</EM>(1),
+<EM>acme</EM>(1), and <EM>limbo</EM>(1)
+and also the papers in sections 1, 2 and 3 of volume two of the Inferno Programmer's Manual.
+
+<P><FONT size=1>
+Copyright &#169; 2000 Vita Nuova Holdings Limited.  All rights reserved.</FONT>
+
+</BODY></HTML>
+<HR>
+The following files are available for downloading:<TABLE BORDER="0">
+</TABLE>
+</BODY></HTML>

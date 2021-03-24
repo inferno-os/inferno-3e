@@ -1,0 +1,293 @@
+.TH WMLIB 2
+.SH NAME
+wmlib: titlebar, titlectl, taskbar, unhide, geom, snarfput, snarfget, tkquote, tkcmds, dialog, getstring, filename, mktabs, tabsctl \-
+window manager toolkit
+.SH SYNOPSIS
+.EX
+include "wmlib.m";
+wmlib := load Wmlib Wmlib->PATH;
+
+Resize,
+Hide,
+Help,
+OK:     con 1 << iota;
+
+Appl:   con Resize | Hide;
+
+init:        fn();
+titlebar:    fn(scr: ref Draw->Screen, where,
+               title: string, buts: int):
+               (ref Tk->Toplevel, chan of string);
+titlectl:    fn(t: ref Tk->Toplevel, request: string);
+taskbar:     fn(t: ref Tk->Toplevel, name: string): string;
+unhide:      fn();
+geom:        fn(t: ref Tk->Toplevel): string;
+snarfput:    fn(buf: string);
+snarfget:    fn(): string;
+tkquote:     fn(s: string): string;
+tkcmds:      fn(t: ref Tk->Toplevel, cmds: array of string);
+dialog:      fn(p: ref Tk->Toplevel, icon, title, msg: string,
+               dflt: int, labs: list of string): int;
+getstring:   fn(p: ref Tk->Toplevel, s: string): string;
+filename:    fn(scr: ref Draw->Screen, t: ref Tk->Toplevel,
+               title: string,
+               pat: list of string,
+               dir: string): string;
+
+mktabs:      fn(p: ref Tk->Toplevel, book: string,
+               tabs: array of (string, string), dflt: int):
+               chan of string;
+
+tabsctl:     fn(p: ref Tk->Toplevel, book: string,
+               tabs: array of (string, string), curid: int,
+               newid: string): int;
+.EE
+.SH DESCRIPTION
+The
+.B Wmlib
+module provides routines for making and updating windows controlled by
+.IR wm (1).
+.PP
+.B Init
+should be called once to initialize the internal state of
+.BR wmlib .
+.PP
+.B Titlebar
+creates a collection of Tk widgets on Screen
+.IR scr ,
+rooted at
+.BR .Wm_t ,
+using the Tk geometry specification given in
+.IR where .
+Additionally 
+.IR where
+may also contain other required characteristics (such as a font specification) by
+simply adding them to any geometry specification.
+The widgets have been packed
+in the
+.B Toplevel
+returned by
+.B titlebar
+to create a managed titlebar.
+The title bar consists of a label,
+.BR .Wm_t.title ,
+and the buttons specified by the bit mask
+.IR buts .
+.B .Wm_t.title
+is initialized with the string
+.IR title ,
+and can be reconfigured to change the title of the window.
+An exit button is always created in the title bar;
+the buttons defined by the constants
+.BR Resize ,
+.BR Hide ,
+.BR Help ,
+and 
+.B OK
+are optional.
+Most applications should use the buttons defined by the constant
+.BR Appl ,
+which is
+.BR Resize|Hide .
+.PP
+A
+.IR tk (2)
+event channel is returned by
+.BR titlebar .
+Messages received on it should be processed by the application or passed to the
+.B titlectl
+function.
+The messages include
+.TP
+.B exit
+The window should be closed.
+.B Titlectl
+will terminate the current process and all members of its process group.
+.TP
+.B ok
+The
+.B OK
+button was activated.
+The window should be closed.
+.TP
+.B help
+The
+.B Help
+button was activated.
+.TP
+.B task
+The
+.B Hide
+button was activated.
+.B Titlectl
+will unmap the
+.BR Toplevel ,
+make an entry in the task bar,
+and suspend the current process.
+Selecting the task bar entry will remap the
+.B Toplevel
+and allow the process to resume.
+.PP
+The simplest well-behaved
+.I wm (1)
+client will therefore contain:
+.PP
+.EX
+	(t, titlec) := wmlib->titlebar(ctxt.screen, "", "My Program", Wmlib->Appl);
+	# ...
+	for(;;){
+		alt{
+		s := <-titlec =>
+			wmlib->titlectl(t, s);
+
+		# handle any other channels
+		}
+	}
+.EE
+.PP
+An application can assign a separate process to handle
+.BR titlectl ,
+so that only that process will block on
+.BR Hide ,
+allowing the rest of the application to proceed in the background.
+.B Unhide
+can be called from another process in the same application
+to unblock the
+process executing
+.BR titlectl ,
+and remap the
+.B Toplevel
+as if by selecting the taskbar entry.
+.PP
+.B Taskbar
+changes the name displayed in the title bar
+and the window's name when it is in the task bar.
+.PP
+.B Geom
+returns a string with the coordinates for a child window.
+.PP
+.B Snarfget
+and
+.B snarfput
+retrieve and replace the contents of the window
+manager's snarf buffer.
+.PP
+The remaining functions build on the
+.B Tk
+module to provide some common user interface functions.
+.PP
+.B Filename
+makes a dialog panel for selecting a file.
+It is displayed on
+.I screen
+near
+.IR parent .
+.I Dir
+gives the directory where the file search should begin.
+Only files that match
+.I pat
+are displayed.
+The returned string is the name of the selected file,
+or the empty string if no file was selected.
+.PP
+.B Tkquote
+returns a string that is the same as its arguments, but enclosed
+in curly braces and with internal curly braces escaped.
+This can be used to make an arbitrary string into a
+.I word
+suitable as an argument to a Tk function.
+.PP
+.B Tkcmds
+executes
+.B tkcmd
+on all strings in the argument array, using
+.I top
+for the first argument of
+.BR Tkcmd .
+It does not check for error returns.
+.PP
+.B Dialog
+pops up a dialog box,
+with the given
+.I title
+and an optional
+.IR icon ,
+near the corner of the parent top level widget,
+.IR p .
+It displays the given
+.I msg
+and a number of buttons, labelled with the strings in
+.IR labs .
+The dialog box waits for the user to push a button, and then
+returns the index of the button pushed (the first element of
+.I labs
+is index 0).
+If the user types a newline, the
+.I dflt
+value is returned.  The button with the
+.I dflt
+index is specially outlined in the dialog box.
+.PP
+.B Getstring
+pops up a dialog box near the corner of the parent top level widget,
+.IR p .
+The box contains the
+.I msg
+and an entry widget.
+It waits for the user to type a string and a newline,
+and then returns the typed string, without the newline.
+.PP
+.B Mktabs
+creates a tabbed notebook pseudo widget,
+.IR book ,
+for insertion into
+widget
+.IR p .
+Once created,
+.I book
+can be packed like any other Tk widget.
+Information for specific tab pages is contained in the
+.I tabs
+array.
+For each page, 
+.I tabs
+contains the name displayed in the tab and a Tk widget name.
+Whenever a page is selected, its widget is
+packed in 
+.I book
+and displayed.
+The notebook will initially display the page
+indexed by
+.IR dflt .
+.B Mktabs
+returns a Tk event channel.
+Messages received on this channel should be passed as the
+.I newid
+argument to
+.BR tabsctl .
+.PP
+.B Tabsctl
+controls a tabbed notebook.
+.I Curid
+is the index of the page currently selected
+in the notebook.
+.I Newid
+is a string containing the index of the new
+page to be displayed; this is usually the information received on
+the tabs channel.
+The index of the newly selected page is returned. 
+.SH FILES
+.TF /chan/snarf
+.TP
+.B /chan/snarf
+snarf buffer maintained by
+.IR wm (1)
+.TP
+.B /chan/wm
+channel for interaction with
+.IR wm (1)
+.SH SOURCE
+.B /appl/lib/wmlib.b
+.SH SEE ALSO
+.IR draw-context (2),
+.IR tk (2)

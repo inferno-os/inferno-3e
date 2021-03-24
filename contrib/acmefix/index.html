@@ -1,0 +1,31 @@
+<HTML><HEAD>
+<TITLE>Inferno Contribution: acmefix</TITLE>
+</HEAD><BODY>
+<H3>Inferno Contribution: acmefix</H3>
+The file guiwm.b fixes an annoying bug in acme which
+causes keyboard and mouse input deadlock which, in turn,
+is followed by the Tk error message:
+<br><pre>
+	too many events buffered
+</pre>
+<p>
+To install, download the file guiwm.b and then
+copy it to the Inferno /appl/acme directory. Then run
+<br><pre><tt>
+	mk install
+</tt></pre>
+in that directory from your host shell.
+<br>
+Alternatively, from an Inferno shell run:
+<br><pre><tt>
+	limbo -gw guiwm.b
+	cp guiwm.dis /dis/acme/guiwm.dis
+</tt></pre>
+<HR>
+The following files are available for downloading:<TABLE BORDER="0">
+<TR>
+<TD><a href="guiwm.b">guiwm.b</a></TD>
+<TD>(6580 bytes)</TD>
+</TR>
+</TABLE>
+</BODY></HTML>

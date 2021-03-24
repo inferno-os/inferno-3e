@@ -1,0 +1,24 @@
+.TH DNS 6
+.SH NAME
+dns \- list of Internet domain name servers
+.SH SYNOPSIS
+.B /services/dns/db
+.SH DESCRIPTION
+The DNS database file is used by a component of the connection server
+.IR cs (8) ,
+when it needs to resolve an Internet domain name.
+.PP
+The file contains a list of numeric Internet addresses for domain name
+servers to use to resolve domain names,
+one address per line.
+One line of the file can also contain the local domain name (without a leading dot),
+which will then be added to logical names in the attempt to resolve them.
+The character
+.L #
+introduces a comment to the end of the current line.
+Empty lines are ignored.
+.PP
+The file is automatically reread if it has
+changed since it was last read (based on its modification time).
+.SH "SEE ALSO"
+.IR cs (8)

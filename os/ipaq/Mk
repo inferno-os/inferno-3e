@@ -1,0 +1,6 @@
+#!/bin/rc
+rfork ne
+fn cd
+NPROC=3
+path=(/usr/inf3/Plan9/$cputype/bin $path)
+exec mk $*

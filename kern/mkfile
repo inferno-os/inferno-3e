@@ -1,0 +1,59 @@
+<../mkconfig
+
+LIB=libkern.a
+
+COMMONFILES=\
+	abort.$O\
+	abs.$O\
+	atol.$O\
+	charstod.$O\
+	cleanname.$O\
+	dofmt.$O\
+	exp.$O\
+	floor.$O\
+	fmt.$O\
+	fmtprint.$O\
+	fmtquote.$O\
+	getfields.$O\
+	log.$O\
+	memccpy.$O\
+	memchr.$O\
+	memcmp.$O\
+	netmkaddr.$O\
+	pow.$O\
+	pow10.$O\
+	qsort.$O\
+	rune.$O\
+	runestrlen.$O\
+	sin.$O\
+	seprint.$O\
+	snprint.$O\
+	sqrt.$O\
+	strcat.$O\
+	strcmp.$O\
+	strcpy.$O\
+	strdup.$O\
+	strlen.$O\
+	strncmp.$O\
+	strncpy.$O\
+	strrchr.$O\
+	strstr.$O\
+	strtod.$O\
+	strtol.$O\
+	strtoll.$O\
+	strtoul.$O\
+	tokenize.$O\
+	toupper.$O\
+	utfecpy.$O\
+	utflen.$O\
+	utfnlen.$O\
+	utfrrune.$O\
+	utfrune.$O\
+	vseprint.$O\
+	vsnprint.$O\
+
+<mkfile-$OBJTYPE		#sets $TARGFILES
+
+OFILES=	$COMMONFILES $TARGFILES
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE

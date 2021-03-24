@@ -1,0 +1,188 @@
+#!/usr/bin/perl
+
+$workfile="work.tmp";
+$tmp=".";
+
+start("border");
+insert("4 4","back");
+finish("b");
+
+makecard("J"," ","j");
+
+foreach $suit (qw/c d h s/)
+{
+    foreach $number (qw/2 3 4 5 6 7 8 9 t j q k a/)
+    {
+	makecard($number,$suit,"$number$suit");
+    }
+}
+
+sub makecard
+{
+    my($number,$suit,$save)=@_;
+    my($nfile);
+    my($s);
+
+    $s="large-$suit";
+
+    print "Making $save\n";
+#    print "Making card for $number/$suit\n";
+
+    $nfile="red-$number" if $suit=~/h|d/;
+    $nfile="black-$number" if $suit=~/c|s/;
+
+    start("border");
+
+    if($number eq "J")
+    {
+	insert("5 11","joker");
+	symrotinsert("2 3","black-j");
+    }
+    else
+    {
+	symrotinsert("2 3",$nfile);
+	symrotinsert("2 18","small-$suit");
+	
+	if($number=~/[qjk]/)
+	{
+	    insert("13 11","box");
+	    symrotinsert("14 12","face-$number$suit");
+	}
+	elsif($number eq "a" && $suit eq "s")
+	{
+	    insert("16 18","ace");
+	}
+	else
+	{
+	    insert("29 41",$s) if($number=~/[a359]/);
+	    insert("29 25",$s) if($number=~/[7]/);
+	    
+	    symrotinsert("29 20",$s) if($number=~/[2t]/);
+	    symrotinsert("29 9",$s) if($number=~/[3]/);
+	    symrotinsert("29 25",$s) if($number=~/[8]/);
+	    
+	    flipxinsert("13 41",$s) if($number=~/[678]/);
+	    
+	    quadinsert("13 30",$s) if($number=~/[9t]/);
+	    quadinsert("13 9",$s) if($number=~/[456789t]/);
+	}	
+    }
+    finish($save);
+}
+
+sub getsize
+{
+    my($file)=@_;
+    my($out);
+
+    $out=`pnmfile $file`;
+
+    $out=~/(\d+) by (\d+)/;
+
+#    print "Size of $file is $1 by $2\n";
+
+    return "$1 $2";
+}
+
+sub getx
+{
+    @_[0]=~/(\d+) (\d+)/;
+
+    return $1;
+}
+
+sub gety
+{
+    @_[0]=~/(\d+) (\d+)/;
+
+    return $2;
+}
+
+sub start
+{
+    my($startfile)=@_;
+
+    $startfile.=".pnm";
+
+    $worksize=getsize($startfile);
+
+    system("cp $startfile $workfile");
+}
+
+sub finish
+{
+    my($save)=@_;
+
+    $save.=".gif";
+
+    system("ppmtogif -interlace -sort -transparent yellow < $workfile > $save 2>/dev/null");
+    system("rm $workfile");
+}
+
+
+sub insert
+{
+    my($pos,$ovly)=@_;
+
+#    print "Inserting $ovly at ($pos)\n";
+
+    system("pnmpaste $ovly.pnm $pos $workfile > $tmp/1.tmp");
+    system("mv $tmp/1.tmp $workfile");
+}
+
+sub rotinsert
+{
+    my($pos,$ovly)=@_;
+
+#    print "Flipping and inserting $ovly at ($pos)\n";
+
+    system("pnmflip -r180 $ovly.pnm > $tmp/f.tmp");
+    system("pnmpaste $tmp/f.tmp $pos $workfile > $tmp/1.tmp");
+    system("mv $tmp/1.tmp $workfile");
+    system("rm $tmp/f.tmp");
+}
+
+sub symrotinsert
+{
+    my($pos,$ovly)=@_;
+    my($size,$sympos);
+    
+#    print "Sym rot insert $ovly at ($pos):\n";
+
+    $size=getsize("$ovly.pnm");
+    $sympos=(getx($worksize)-getx($pos)-getx($size)).
+	" ".(gety($worksize)-gety($pos)-gety($size));
+    
+    rotinsert($sympos,$ovly);
+    insert($pos,$ovly);
+}
+
+sub flipxinsert
+{
+    my($pos,$ovly)=@_;
+    my($size,$sympos);
+    
+#    print "Flip x insert $ovly at ($pos):\n";
+
+    $size=getsize("$ovly.pnm");
+    $sympos=(getx($worksize)-getx($pos)-getx($size)).
+	" ".(gety($pos));
+    
+    insert($sympos,$ovly);
+    insert($pos,$ovly);
+}
+
+sub quadinsert
+{
+    my($pos,$ovly)=@_;
+    my($size,$sympos);
+    
+#    print "Quad insert $ovly at ($pos):\n";
+
+    $size=getsize("$ovly.pnm");
+    $sympos=(getx($worksize)-getx($pos)-getx($size)).
+	" ".(gety($pos));
+    
+    symrotinsert($sympos,$ovly);
+    symrotinsert($pos,$ovly);
+}

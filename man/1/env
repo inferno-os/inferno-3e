@@ -1,0 +1,51 @@
+.TH ENV 1
+.SH NAME
+env, getenv, setenv \- environment routines
+.SH SYNOPSIS
+.B env
+.PP
+.B getenv
+.I varname
+.PP
+.B setenv
+.I varname
+[
+.I value
+]
+.SH DESCRIPTION
+The
+.IR env
+command prints out the current process's environment as a list of variables and their
+current values.
+.PP
+The 
+.IR getenv
+command prints out the current value of the variable whose name is given as
+the argument
+.I varname .
+If the variable is not set, a blank line is output.
+.PP
+The
+.IR setenv
+command sets the value of the variable whose name is given as the argument
+.I varname
+to 
+.I value
+when the latter is provided on the command line. If no second argument is given the effect is
+to unset the variable. In both cases, 
+if the variable is set originally, that value will be replaced by the new one.
+.SH SOURCE
+.B /appl/cmd/env.b
+.br
+.B /appl/cmd/getenv.b
+.br
+.B /appl/cmd/setenv.b
+.SH SEE ALSO
+.IR acme (1),
+.IR sh (1),
+.IR env (2)
+.SH BUGS
+.I Env
+does not understand that environment variables as stored by
+.IR sh (1)
+are lists.

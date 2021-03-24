@@ -1,0 +1,15 @@
+intro 0intro
+attach and  nop attach
+attach attach
+clone clone
+clunk clunk
+error error
+flush flush
+create open
+open open
+read read
+write read
+remove remove
+stat stat
+wstat stat
+walk walk

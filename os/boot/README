@@ -1,0 +1,21 @@
+There are two distinct models for bootstrap in this directory.
+
+	Model I
+
+Each member of the first model is represented by a self-contained directory.
+They are derived from Plan 9's b.com.
+
+pc	386	pc-specific bootstrap
+mpc	power	PowerPC bootstrap for FADS board
+puma	arm	SA110 bootstrap for Teralogics Puma
+
+	Model II
+
+These are components of Frank Barrus's Strongarm bootstrap, sboot(10.8):
+
+port	common code
+net	common network code
+styxmon	common StyxMon code
+
+sa1100	arm	platform-specific code for SA1100
+ebsit	arm	platform-specific code for SA110

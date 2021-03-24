@@ -1,0 +1,205 @@
+.TH DRAW-DISPLAY 2
+.SH NAME
+Display \-
+connection to draw device
+.SH SYNOPSIS
+.EX
+include	"draw.m";
+draw := load Draw Draw->PATH;
+
+Display: adt
+{
+    image:       ref Image;
+    ones:        ref Image;
+    zeros:       ref Image;
+
+    allocate:    fn(dev: string):
+                 ref Display;
+    startrefresh:fn(d: self ref Display);
+    publicscreen:fn(d: self ref Display, id: int):
+                 ref Screen;
+    newimage:    fn(d: self ref Display,
+                 r: Rect, ldepth, repl, color: int):
+                 ref Image;
+    color:       fn(d: self ref Display, color: int):
+                 ref Image;
+    rgb:         fn(d: self ref Display, red, green, blue: int):
+                 ref Image;
+    open:        fn(d: self ref Display, name: string):
+                 ref Image;
+    readimage:   fn(d: self ref Display, fd: ref Sys->FD):
+                 ref Image;
+    writeimage:  fn(d: self ref Display, fd: ref Sys->FD,
+                 i: ref Image): int;
+    rgb2cmap:    fn(d: self ref Display, red, green, blue: int):
+                 int;
+    cmap2rgb:    fn(d: self ref Display, color: int):
+                 (int, int, int);
+    cursor:      fn(d: self ref Display, i: ref Image, p: ref Point):
+                 int;
+    cursorset:   fn(d: self ref Display, p : Point);
+};
+.EE
+.SH DESCRIPTION
+The
+.B Display
+type represents a connection to a
+.IR draw (3)
+device.
+This device is the external representation of a physical
+display, such as a CRT, and its associated memory.
+It contains the storage for all images,
+even invisible ones, so all
+.B Image
+objects must be allocated
+through
+.B Display
+member functions.
+Graphics operations that use multiple
+.B Image
+objects may not mix images from different
+.BR Displays .
+.PP
+.TP 10
+.B image
+The visible contents of the display;
+draw on
+.B image
+to change the display.
+.TP
+.BR ones ", " zeros
+Replicated images of a single pixel,
+either all ones (true, black) or all zeros (false, white).
+Useful as masks for
+basic graphical operations.
+.TP
+.BI allocate( dev )
+Attach to a new display, represented by the
+.IR draw (3)
+device mounted in the specified
+.I dev
+directory.
+If
+.I dev
+is the empty string,
+.B /dev
+is used.
+The return value is
+.B nil
+if the allocation fails.
+.TP
+.IB d .startrefresh()
+After allocating a
+.B Display
+object, the application should spawn a process to call
+.BR startrefresh ;
+this thread will receive and process window refresh events
+from the device.
+.TP
+.IB d .publicscreen( id )
+Create a locally addressable pointer to a public
+.BR Screen ;
+see \f2display-screen\fP(2).
+.TP
+.IB d .newimage( r\fP,\fP\ ldepth\fP,\fP\ repl\fP,\fP\ color )
+Allocate an off-screen
+.BR Image .
+The arguments supply values for the
+.BR Image 's
+.BR r ,
+.BR ldepth ,
+and
+.BR repl ,
+and an initial color map index, used to paint the image
+when created.
+The image's
+.B clipr
+is initialized to
+.BR r .
+.TP
+.IB d .color( color )
+Creates a single-pixel,
+replicated off-screen image of the specified colour.
+The
+.B Draw
+module defines constants for several common colours:
+.BR Draw\->Black ,
+.BR Draw\->Blue ,
+.BR Draw\->Green ,
+.BR Draw\->Red ,
+.BR Draw\->White ,
+and
+.BR Draw\->Yellow .
+.TP
+.IB d .rgb( red\fP,\fP\ green\fP,\fP\ blue )
+Uses the values (from 0 (off) through 255 (full on)) of red, green, and blue
+to find the closest matching colour map entry,
+and create a single-pixel replicated image of that colour.
+Equivalent to
+.IB d .color(d.rgb2cmap(
+.IB r ,
+.IB g ,
+.IB b ))\f1.
+.TP
+.IB d .open( name )
+Read an image
+description from the named
+file and return an
+.B Image
+holding the picture.
+See
+.IR image (6)
+for more information about image files.
+.TP
+.IB d .readimage( fd )
+Analogous to
+.BR open ,
+but from an open file descriptor rather than a named file.
+.TP
+.IB d .writeimage( fd\fP,\fP\ i )
+Complement of
+.BR readimage :
+write an image file representing
+.B i
+to the open file descriptor.
+.TP
+.IB d .rgb2cmap( red\fP,\fP\ green\fP,\fP\ blue )
+Return the colour map index of the colour that best matches
+the colour triple.  The values of the components range from
+0 (no colour) to 255 (saturated).
+.TP
+.IB d .cmap2rgb( color )
+Decompose the colour into a colour triple and return the result.
+.TP
+.IB d .cursor(\fIi\fP,\ \fIp\fP)
+Set the current cursor.
+If
+.I i
+is the image of the current display,
+then the graphics cursor will be set
+to its default value, otherwise
+.I i
+must be an image with ldepth 0
+and the following rules apply: the size of the
+cursor will be half the horizontal height of
+.I i
+(subject to system-dependent restrictions on cursor
+size). The top half and the bottom half of the image
+are treated as two independent masks. When the
+cursor is drawn, pixels congruent with non-zero bits
+in the top half are cleared
+and then pixels congruent with non-zero bits in the
+bottom half are set.
+.I P
+gives the offset added to the mouse position when drawing
+the cursor image.
+.TP
+.IB d .cursorset(\fIp\fP)
+Set the position of the mouse cursor to
+.IR p .
+.SH BUGS
+The interface to
+.B cursor
+does not allow the use of colour mouse cursors,
+even on systems that allow them. The interface is likely
+to change in this respect.

@@ -1,0 +1,75 @@
+.TH WM-LICENSE 1
+.SH NAME
+license \- display and confirm licence terms
+.SH SYNOPSIS
+.B wm/license
+.SH DESCRIPTION
+.I License
+displays the contents of the system licence file
+.B /licencedb/LICENCE
+and prompts the user to accept or reject the terms.
+If the licence file does not exist the command exits
+without displaying anything.
+.PP
+If the user accepts the terms of the licence then a file is
+created in the
+.B /licencedb
+directory to indicate acceptance.
+The filename is derived from the current user and host name as read from
+.B /dev/user
+and
+.B /dev/sysname
+respectively.
+.PP
+The acceptance file contains the text:
+.IP
+.IB Username @ Hostname
+.I Timestamp
+.PP
+where
+.I Timestamp
+is the text read from the file
+.B /dev/time
+at the time of writing the acceptance file.
+.PP
+The name of the acceptance file is a 16 digit hexadecimal number.
+The numeric value of the filename is formed as a 64-bit value with
+.I userval
+in the high-order 32 bits and
+.I hostval
+in the low-order 32 bits,
+where
+.I userval
+and
+.I hostval
+are calculated from the username and hostname text by the following expression:
+.I val
+=
+.RI SUM( text [ n ]
+.RI "x 3^(" "len-n" )),
+where
+.I len
+is the length of the text and
+.IR text [ n ]
+is the unicode code-point of the
+.IR nth
+character in the string (starting at 1).
+.SH FILES
+.TF /licencedb/xxxxxxxxxxxxxxxx
+.TP
+.B /licencedb/LICENCE
+The text of the licence agreement.
+.TP
+.BI /licencedb/ xxxxxxxxxxxxxxxx
+Licence acceptance file, the file name is derived from the host and user name.
+.PP
+.B /dev/user
+.br
+.B /dev/sysname
+.br
+.B /dev/time
+.SH SOURCE
+.B /appl/wm/license.b
+.SH "SEE ALSO"
+.IR wm (1),
+.IR cons (3)

@@ -1,0 +1,57 @@
+<../../mkconfig
+INF=$ROOT
+
+ENGINES=engines/bounce.dis \
+	engines/chat.dis \
+	engines/liars.dis \
+	engines/whist.dis \
+	engines/othello.dis \
+	engines/afghan.dis \
+	engines/racingdemon.dis \
+	engines/canfield.dis \
+	engines/spit.dis \
+	engines/spit.new.dis \
+	engines/freecell.dis \
+	engines/spider.dis \
+
+CLIENTS=clients/bounce.dis \
+	clients/cards.dis \
+	clients/chat.dis \
+	clients/othello.dis \
+
+LIB=lib/base64.dis \
+	lib/commandline.dis \
+	lib/multistyx.dis \
+	lib/cardlib.dis \
+	lib/allow.dis \
+
+MAIN=gameclient.dis \
+	gamesrv.dis \
+	gamelogind.dis \
+
+DEST=$INF/dis/games
+
+ALL= ${ENGINES:%=$DEST/%} \
+	${CLIENTS:%=$DEST/%} \
+	${LIB:%=$DEST/%} \
+	${MAIN:%=$DEST/%}
+
+all:V: $ENGINES $CLIENTS $LIB $MAIN
+
+install:V:	$ALL
+
+$INF/dis/games/%.dis:	%.dis
+	cp $prereq $target
+
+%.dis:	%.b
+	limbo -I$ROOT/module -Ilib -g -o $stem.dis $stem.b
+
+$ENGINES $MAIN $LIB: gamesrv.m
+
+engines/whist.dis:	lib/allow.m lib/cardlib.m
+
+clean:NV:
+	rm -f *.dis *.sbl */*.dis */*.sbl
+
+nuke:NV: clean
+	rm -f $ALL

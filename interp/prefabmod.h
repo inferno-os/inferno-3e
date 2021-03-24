@@ -1,0 +1,26 @@
+typedef struct{char *name; long sig; void (*fn)(void*); int size; int np; uchar map[16];} Runtab;
+Runtab Prefabmodtab[]={
+	"Element.adjust",0xdd810e38,Element_adjust,48,2,{0x0,0x80,},
+	"Element.append",0x68df73e6,Element_append,40,2,{0x0,0xc0,},
+	"Compound.box",0x3f2e0bf4,Compound_box,56,2,{0x0,0x98,},
+	"Element.clip",0x46087476,Element_clip,56,2,{0x0,0x80,},
+	"Compound.draw",0x5765bab5,Compound_draw,40,2,{0x0,0x80,},
+	"Element.elist",0x93f9f3dd,Element_elist,48,2,{0x0,0xc0,},
+	"Compound.highlight",0x753fcc7b,Compound_highlight,48,2,{0x0,0xc0,},
+	"Element.icon",0xd4be4225,Element_icon,64,2,{0x0,0x86,},
+	"Compound.iconbox",0x2c29815c,Compound_iconbox,56,2,{0x0,0x9c,},
+	"Element.layout",0xf4a94a74,Element_layout,64,2,{0x0,0xc0,},
+	"Compound.layoutbox",0xc1490e3d,Compound_layoutbox,64,2,{0x0,0x86,},
+	"Compound.redraw",0x28830d99,Compound_redraw,56,2,{0x0,0x80,},
+	"Element.scroll",0xa7b5211a,Element_scroll,48,2,{0x0,0x80,},
+	"Compound.scroll",0x24566726,Compound_scroll,48,2,{0x0,0xc0,},
+	"Compound.select",0x19805ded,Compound_select,48,2,{0x0,0xd0,},
+	"Element.separator",0xd4be4225,Element_separator,64,2,{0x0,0x86,},
+	"Element.show",0x68df73e6,Element_show,40,2,{0x0,0xc0,},
+	"Compound.show",0x82cd9355,Compound_show,40,2,{0x0,0xc0,},
+	"Compound.tagselect",0x19805ded,Compound_tagselect,48,2,{0x0,0xd0,},
+	"Element.text",0xf2065a59,Element_text,64,2,{0x0,0xc0,},
+	"Compound.textbox",0x9cbcc0d7,Compound_textbox,64,2,{0x0,0x86,},
+	"Element.translate",0xa7b5211a,Element_translate,48,2,{0x0,0x80,},
+	0
+};

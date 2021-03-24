@@ -1,0 +1,600 @@
+.TH STYXLIB 2
+.SH NAME
+styxlib \-
+Styx server implementation module
+.SH SYNOPSIS
+.EX
+include "styxlib.m";
+styxlib := load Styxlib Styxlib->PATH;
+Styxserver, Chan: import styxlib;
+
+Styxserver: adt {
+	new: fn(fd: ref Sys->FD): (chan of ref Tmsg, ref Styxserver);
+	reply: fn(srv: self ref Styxserver, m: ref Rmsg): int;
+
+	devattach: fn(srv: self ref Styxserver, m: ref Tmsg.Attach):
+				ref Chan;
+	devclone: fn(srv: self ref Styxserver, m: ref Tmsg.Clone):
+				ref Chan;
+	devflush: fn(srv: self ref Styxserver, m: ref Tmsg.Flush);
+	devwalk: fn(srv: self ref Styxserver, m: ref Tmsg.Walk,
+				gen: Dirgenmod, tab: array of Dirtab): ref Chan;
+	devclunk: fn(srv: self ref Styxserver, m: ref Tmsg.Clunk):
+				ref Chan;
+	devstat: fn(srv: self ref Styxserver, m: ref Tmsg.Stat,
+				gen: Dirgenmod, tab: array of Dirtab);
+	devdirread: fn(srv: self ref Styxserver, m: ref Tmsg.Read,
+			gen: Dirgenmod, tab: array of Dirtab);
+	devopen: fn(srv: self ref Styxserver, m: ref Tmsg.Open,
+			gen: Dirgenmod, tab: array of Dirtab): ref Chan;
+	devremove: fn(srv: self ref Styxserver, m: ref Tmsg.Remove):
+				ref Chan;
+
+	fidtochan: fn(srv: self ref Styxserver, fid: int): ref Chan;
+	newchan: fn(srv: self ref Styxserver, fid: int): ref Chan;
+	chanfree: fn(srv: self ref Styxserver, c: ref Chan);
+	chanlist: fn(srv: self ref Styxserver): list of ref Chan;
+};
+Chan: adt {
+	fid: int;
+	qid: Sys->Qid;
+	open: int;
+	mode: int;
+	uname: string;
+	path: string;
+	data: array of byte;
+	isdir: fn(c: self ref Chan): int;
+};
+Dirtab: adt {
+	name: string;
+	qid: Sys->Qid;
+	length: big;
+	perm: int;
+};
+Dirgenmod: module {
+	dirgen: fn(srv: ref Styxlib->Styxserver, c: ref Styxlib->Chan,
+		tab: array of Styxlib->Dirtab, i: int): (int, Sys->Dir);
+};
+Tmsg: adt {
+	tag: int;
+	pick {
+	Readerror => error: string;
+	Attach => fid: int; uname, aname: string;
+	Clone => fid, newfid: int;
+	Clunk => fid: int;
+	Create => fid, perm, mode: int; name: string;
+	Flush => oldtag: int;
+	Nop =>
+	Open => fid, mode: int;
+	Read =>  fid, count: int; offset: big;
+	Remove => fid: int;
+	Stat => fid: int;
+	Walk => fid: int; name: string;
+	Write => fid: int; offset: big; data: array of byte;
+	Wstat => fid: int; stat: Sys->Dir;
+	}
+};
+Rmsg: adt {
+	tag: int;
+	pick {
+	Attach  => fid: int; qid: Sys->Qid;
+	Clone => fid: int'
+	Clunk => fid: int;
+	Create => fid: int; qid: Sys->Qid;
+	Error => err: string;
+	Flush =>
+	Nop =>
+	Open => fid: int; qid: Sys->Qid;
+	Read => fid: int; data: array of byte;
+	Remove => fid: int;
+	Stat => fid: int; stat: Sys->Dir;
+	Walk => fid: int; qid: Sys->Qid;
+	Write => fid, count: int;
+	Wstat => fid: int;
+	}
+};
+readbytes: fn(m: ref Tmsg.Read, d: array of byte): ref Rmsg.Read;
+readnum: fn(m: ref Tmsg.Read, val, size: int): ref Rmsg.Read;
+readstr: fn(m: ref Tmsg.Read, d: string): ref Rmsg.Read;
+openok: fn(omode, perm: int, uname, funame, fgname: string): int;
+openmode: fn(o: int): int;
+devdir: fn(c: ref Chan, qid: Sys->Qid, n: string, length: big,
+	user: string, perm: int): Sys->Dir;
+dirgenmodule: fn(): Dirgenmod;
+d2tmsg: fn(d: array of byte): (int, ref Tmsg);
+d2rmsg: fn(d: array of byte): (int, ref Rmsg);
+rmsg2d: fn(m: ref Rmsg, d: array of byte): int;
+tmsg2s: fn(m: ref Tmsg): string;
+rmsg2s: fn(m: ref Rmsg): string;
+convD2M: fn(d: array of byte, f: Sys->Dir): array of byte;
+convM2D: fn(d: array of byte): (array of byte, Sys->Dir);
+
+MAXRPC: con 128 + Sys->ATOMICIO;
+DIRLEN: con 116;
+.EE
+.SH DESCRIPTION
+The
+.B Styxlib
+module provides a framework for writing Limbo-implemented
+Styx servers.
+Many of its functions
+parallel the generic device
+driver functions found in the kernel.
+A thorough reading of section 5 of the manual is advised
+before using this module. 
+.B Styxserver.new
+starts a thread reading Styx messages from
+.IR fd .
+.I Fd
+should be a pipe or a data channel with a Styx client
+at its other end, usually mounted (see
+.IR sys-bind (2))
+in an Inferno namespace.
+It returns a tuple of the form
+.I (tchan, srv) .
+As each complete message is read, it is bundled into
+a
+.B Tmsg
+adt and sent down
+.IR tchan .
+.IB Srv .reply
+takes one parameter,
+.IR m ,
+an
+.B Rmsg
+to be written to
+.IR fd .
+Each Styx T-message (R-message) has a corresponding
+.B Tmsg
+.RB ( Rmsg )
+pick variant.
+.B Tmsg.Readerror
+will be sent when an error has occurred reading from
+.I fd.
+.PP
+.B Styxlib
+provides a number of utility functions to assist
+in the construction of certain of the more common styles
+of Styx servers. These may be used as appropriate
+in any particular implementation. Most
+.B Tmsg
+types have an associated
+.IB srv .dev type()
+handler function. The first
+argument to all of these functions is
+.IR m ,
+the
+.B Tmsg
+which is to be handled.
+Many of them also take the following arguments.
+.TP 10
+.I tab
+An array of
+.B Dirtab
+adts, often hard-coded.
+.TP
+.I gen
+A module that implements the function
+.BI dirgen( srv\fP,\fP\ c\fP,\fP\ tab\fP,\fP\ i )
+which is called to enumerate each item
+.I i
+on 
+.I srv
+in the file represented by
+.IR c .
+.I Tab
+is passed through unchanged from the calling function.
+.B Dirgen
+returns a tuple of the form
+.RI ( n , dir ).
+If successful,
+.I n
+should be 1, and
+.I dir
+the
+.IR i 'th
+directory in
+.IR c .
+If unsuccessful,
+.I n
+should be \-1.
+.B Styxlib
+implements the function
+.B dirgenmodule
+which returns a module implementing
+a version of
+.B dirgen
+that generates entries directly from
+.IR tab .
+
+.PP
+Between them, the
+.BI dev *
+functions
+maintain a table associating the integer
+.I fid
+found in Styx messages and a
+.B Chan
+adt holding current information about the
+.IR fid .
+A
+.B Chan
+holds the following information:
+.PP
+.TP 10
+.B fid
+The
+.I fid
+used in the Styx messages.
+.TP
+.B qid
+The
+.I qid
+for the file. (see
+.IR intro (5))
+.TP
+.B open
+Non-zero if the file has been opened
+for I/O.
+.B Clone
+and
+.B walk
+requests should be refused for open files.
+.TP
+.B mode
+The mode that the file was opened in (see
+.IR sys-open (2))
+.TP
+.B uname
+The username as given in the original
+.B Tattach
+from which this
+.B Chan derives.
+.TP
+.B path
+The name of the file as used in its last
+.B walk
+request.
+.TP
+.B data
+This can be used to store arbitrary data associated with the
+file.
+.SS T-message Handler Functions
+The following generic handler functions are provided. Each one
+makes an appropriate reply to the client.
+.TP 10
+.IB srv .devattach( m )
+.B Devattach
+creates a new
+.B Chan
+adt associated with
+.IB m .fid
+and returns it.
+.TP
+.IB srv .devclone( m )
+.B Devclone
+copies the
+.B Chan associated with
+.IB m .fid
+to make a new
+.B Chan
+associated with
+.IB m .newfid
+and returns the new
+.BR Chan .
+.TP
+.IB srv .devflush( m )
+.B Devflush
+does nothing other than making the appropriate
+.B Rmsg.Flush
+reply.
+.TP
+.IB srv .devremove( m )
+.B Devremove
+removes the 
+.B Chan
+associated with
+.I m
+from the fid table, replies to the client
+with a "permission denied" message and returns the old
+.BR Chan .
+.TP
+.IB srv .devclunk( m )
+.B Devclunk
+removes the 
+.B Chan
+associated with
+.I m
+from the fid table and returns it.
+.TP
+.IB srv .devwalk( m\fP,\fP\ gen\fP,\fP\ tab )
+.B Devwalk
+walks the
+.B Chan
+associated with 
+.IB m .fid
+(which should represent a directory) to a file within
+that directory. It returns that
+.BR Chan .
+.TP
+.IB srv .devopen( m\fP,\fP\ gen\fP,\fP\ tab )
+.B Devopen
+searches the items returned by
+.IB gen ->dirgen
+for an item with a
+.I qid
+matching the
+.I qid
+in the
+.B Chan
+associated with
+.IB m .fid.
+It then validates the requested open mode against
+the file's permissions (see
+.BR openok ,
+below).
+.TP
+.IB srv .devstat( m\fP,\fP\ gen\fP,\fP\ tab )
+.B Devstat
+searches the items returned by
+.IB gen ->dirgen
+for an item with a
+.I qid
+matching the
+.I qid
+in the
+.B Chan
+associated with
+.IB m .fid.
+If found, it returns the associated status
+information to the client. If it is a directory
+and is not found, it is assumed to be the
+containing directory, and suitable status information is
+fabricated.
+.TP
+.IB srv .devdirread( m\fP,\fP\ gen\fP,\fP\ tab )
+There is no generic
+.B devread
+function, but when
+.IB m .fid
+represents a directory,
+.B devdirread
+can be used to return to the client the appropriate items as generated
+by
+.IB gen ->dirgen.
+See also
+.BR readbytes ,
+.BR readnum ,
+and
+.B readstr
+below.
+.SS Message Conversion Functions
+The following functions provide facilities to
+parse and unparse Styx messages.
+.TP 10
+.BI d2tmsg( d )
+.B D2tmsg
+tries to convert a Styx message in
+.I d
+to its appropriate
+.B Tmsg
+variant. It returns a tuple of the form
+.RI ( n , tmsg ).
+If the conversion is successful, 
+.I n
+holds the number of bytes used by the message
+and
+.I tmsg
+the
+.B Tmsg
+itself. If the message was valid so far, but incomplete,
+then
+.I n
+will be zero; if there was an error converting
+the message, then
+.I n
+will be \-1.
+.TP
+.BI d2rmsg( d )
+.B D2rmsg
+works in the same fashion as
+.BR d2tmsg ,
+converting instead to an
+.BR Rmsg .
+.TP
+.BI rmsg2d( m , d )
+.B Rmsg2d
+packs
+.I m
+into the data buffer
+.IR d ,
+which should be at least
+.B MAXRPC
+bytes long.
+It returns the number of bytes
+used by the message.
+.TP
+.BI convD2M( d , f )
+.B ConvD2M
+packs
+.I f
+into
+.I d
+in Styx format. It returns the slice
+of
+.I d
+that has not been filled.
+.TP
+.BI convM2D( d )
+.B ConvM2D
+unpacks
+.I d
+(a buffer holding a
+.B Dir
+in Styx format, which must be
+at least
+.B DIRLEN
+bytes long) and returns a tuple of the form
+.RI ( r ,\  f )
+where
+.I r
+is the slice of
+.I d
+remaining after the conversion, and
+.I f
+is the converted
+.BR Dir .
+.TP
+.BI tmsg2s( m )
+.B Tmsg2s
+returns
+.I m
+as a printable string.
+.TP
+.BI rmsg2s( m )
+.B Tmsg2s
+returns
+.I m
+as a printable string.
+.SS Utility Functions
+These functions provide general facilities useful in implementing
+Styx servers.
+.TP 10
+.BI readbytes( m , d )
+.B Readbytes
+returns an appropriate
+.B Rmsg.Read
+given the data
+.I d
+in the file referred to by
+.IB m .fid.
+.TP
+.BI readnum( m\fP,\fP\ val\fP,\fP\ size )
+.B Readnum
+formats
+.I val
+as a decimal, right justified in
+.I size
+bytes, padded with spaces, and returns the
+result of
+.B readbytes
+on that data.
+.TP
+.BI readstr ( m , s )
+.B Readstr
+converts 
+.I s
+to an array of byte and returns the result of
+.B readbytes
+on that data.
+.TP
+.BI openok( omode\fP,\fP\ perm\fP,\fP\ uname\fP,\fP\ funame\fP,\fP\ fgname)
+.B Openok
+checks a requested open mode (see
+.IR open (5))
+against a file with permissions
+.IR perm ,
+owned by
+.I funame
+and group
+.IR fgname .
+.I Uname
+is the user trying to open the file.
+It returns non-zero if access should be allowed.
+.TP
+.BI openmode( o )
+.B Openmode
+verifies that
+.I o
+is a valid open mode. It returns \-1 if
+.I o
+contains unrecognised flags; otherwise it returns
+.I o
+with the
+.B Sys->OTRUNC
+and
+.B Sys->ORCLOSE
+flags cleared.
+.TP
+.BI devdir( c\fP,\fP\ qid\fP,\fP\ name\fP,\fP\ length\fP,\fP\ user\fP,\fP\ perm )
+.B Devdir
+builds a
+.B Sys->Dir
+adt given channel
+.I c
+and assorted other information.
+.SS Fid Table Manipulation
+These functions provide direct access to the table
+of
+.BR Chan s
+maintained by the
+.BI dev *
+functions. This table is maintained on a
+.RB per- Styxserver
+basis.
+.TP 10
+.IB srv .fidtochan( fid )
+.B Fidtochan
+returns the
+.B Chan associated with
+.IR fid ,
+or
+.B nil
+if none exists.
+.TP
+.IB srv .newchan( fid )
+.B Newchan
+creates a new
+.B Chan
+associated with
+.I fid
+and enters it in the table.
+.TP
+.IB srv .chanfree ( c )
+.B Chanfree
+deletes
+.I c
+from the table.
+.TP
+.IB srv .chanlist()
+.B Chanlist
+returns a list containing all of the
+.BR Chan s
+currently entered in the table.
+.SS Constants
+.B Styxlib
+defines a number of constants applicable to the writing
+of Styx servers, including:
+.TP 10
+.BI T type\f1\ and\ \fP R type
+These enumerate the Styx message type constants defined
+by the Styx protocol (e.g.
+.BR Tattach ,
+.BR Rerror ).
+.TP
+.BR Einuse\fP,\fP\ Ebadfid\fP,\fP\ Eopen\fP,\fP\ Enotfound\fP,\fP\ Enotdir\fP,\fP\ Eperm\fP,\fP\ Ebadarg\fP,\fP\ Eexists
+These provide standard strings for commonly used error conditions,
+to be used in
+.B Rmsg.Error
+replies.
+.SH FILES
+.B /dev/time
+.br
+.B /dev/user
+.SH SOURCE
+.B /appl/lib/styxlib.b
+.SH SEE ALSO
+.IR intro (5)
+.SH BUGS
+.B Tmsg2d
+is unimplemented.
+.PP
+.B Openok
+does not check group permissions.
+.PP
+.B Devdir
+always creates a
+.B Dir
+with the same access time (the time that
+.B styxlib
+was initialised).

@@ -1,0 +1,113 @@
+.TH KFS 3
+.SH NAME
+kfs \- disk file system
+.SH SYNOPSIS
+.B bind -b '#Kcons' /dev
+.PP
+.B /dev/kfscons
+.br
+.B /dev/kfsctl
+.PP
+.B bind
+.B '#K\fIfsname'
+.I dir
+.SH DESCRIPTION
+.I Kfs
+implements a hierarchical Inferno file system within an existing file,
+including disk partitions or flash memory.
+It uses the same file system format as the
+.I kfs
+command of Plan 9.
+The
+.B kfsctl
+file accepts two requests:
+.TP
+.BI ream " fsname file"
+Create the file system
+.I fsname
+by writing an empty file system image to
+.IR file .
+The amount of available space in the file system is
+limited by the size of
+.IR file .
+.TP
+.BI filsys " fsname file \f1[\f0option ...\f1]\f0"
+Access an existing file system image
+residing in
+.I file
+and make its contents available as file system
+.IR fsname .
+The valid options are:
+.BR ro ,
+which makes the file system readonly,
+and
+.BR flash ,
+which suppresses updates to file and directory access times
+to reduce the number of writes to flash.
+.PP
+The file
+.B kfscons
+accepts `console' commands to control
+.IR kfs 's
+operation;
+see
+.IR kfscmd (8).
+.SH EXAMPLES
+Create an empty file system named
+.I fs
+in the file
+.BR kfs.file .
+Because the file system will be no larger than the existing
+file's size, and the file is assumed not to be a device file, use
+.IR zeros (1)
+to prepare a file with 2048 blocks of 1024 bytes each:
+.IP
+.EX
+zeros 1024 2048 >kfs.file
+echo ream fs kfs.file > '#Kcons/kfsctl'
+.EE
+.PP
+Once a file system image has been created by
+.BR ream ,
+subsequent initialisation requests should use
+.BR filsys :
+.IP
+.EX
+echo filsys fs kfs.file >'#Kcons/kfsctl'
+.EE
+.PP
+In either case, the new filesystem
+can be bound into the namespace
+with
+.IR bind (1):
+.IP
+.EX
+bind -c '#Kfs’ /n/local
+.EE
+.PP
+The contents of the file system can be provided by using commands
+such as
+.IR mkdir (1),
+.IR cp (1)
+and
+.IR rm (1)
+in
+.BR /n/local,
+or built from a description using
+.IR mkfs (8).
+.PP
+The file system must be shut down cleanly using
+.BR halt :
+.IP
+.EX
+echo cfs fs >'#Kcons/kfscons'
+echo halt >'#Kcons/kfscons'
+.EE
+.SH SEE ALSO
+.IR zeros (1),
+.IR dd (1),
+.IR kfscmd (8),
+.IR mkfs (8)
+.SH BUGS
+It would probably be better to
+implement it in Limbo.

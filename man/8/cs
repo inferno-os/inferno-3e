@@ -1,0 +1,150 @@
+.TH CS 8
+.SH NAME
+cs, csquery \- connection server
+.SH SYNOPSYS
+.B lib/cs
+[
+.B -f
+] [
+.B -v
+]
+.br
+.B svc/cs/cs
+[
+.B -f
+] [
+.B -v
+]
+.PP
+.B csquery
+[
+.B -x
+.I net
+] [
+.B -s
+.I server
+] [
+.I address
+\&... ]
+.SH DESCRIPTION
+.I Cs
+spawns a process that
+serves a single file
+.BR /net/cs ,
+in the current name space,
+answering requests by client processes
+to translate symbolic network and service names into
+instructions for connecting to the given service.
+It is normally accessed by calls to
+.IR sys-dial (2).
+.PP
+Each write to
+.B /net/cs
+is a network address of the same form
+as the
+.I addr
+parameter to
+.IR dial :
+.IB network ! netaddr ! service
+where
+.I service
+and
+.I network
+are optional.
+The write returns an error if the address cannot be translated.
+Otherwise, 
+each subsequent read returns
+end-of-file (if there are no further translations),
+or a translation of the form:
+.IP
+.BI /net/ net /clone " address" ! port
+.PP
+The first field is the name of the
+.I clone
+file for a network interface.
+To make a connection, open the file, and write the text in the second field.
+There is a translation for each network and for each network address on which a symbolic
+.I netaddr
+is found.
+The file offset should be set to 0 using
+.IR sys-seek (2)
+between the write and the read.
+.PP
+The file
+.B /net/cs
+persists until it is removed or unmounted from
+.BR /net ,
+or the
+.I cs
+process is killed
+(see
+.IR kill (1)).
+Normally only one instance of
+.I cs
+is active; if it finds, when started, that
+.B /net/cs
+already exists, it prints a diagnostic and exits.
+The
+.B \-f
+option forces
+.I cs
+to put a new
+.B /net/cs
+above the existing one in the current name space; subsequent translation
+requests in the same name space will be resolved by the new instance.
+The
+.B \-v
+option causes
+.I cs
+to print each translation request and results (if any) on standard error.
+.PP
+.I Cs
+is normally started once, before other applications including
+.IR srv (8).
+(On Plan 9, Plan 9's native connection service will be used by default if Inferno's
+.I cs
+is not started.)
+There are currently two versions:
+.B lib/cs
+is normally used on networked hosts with Ethernet access to a file server;
+.B /svc/cs/cs
+must be used on small clients that use PPP on a (dial-up) serial port for network access.
+.PP
+.I Csquery
+queries the given
+.I server
+(default:
+.BR /net/cs )
+for a translation of each
+.I address
+and prints the results, one per line.
+If no
+.I address
+is given,
+.I csquery
+prompts for address(es) to translate which it reads from the standard input,
+printing the results of each translation on the standard output.
+The
+.B -x
+option gives an alternative mount point for
+.IR cs ,
+when there is more than one network stack
+(see
+.IR ip (3)).
+.SH FILES
+.TF /services/cs/db
+.TP
+.B /services/cs/db
+map from symbolic service names to servers
+.TP
+.B /services/dns/db
+Internet addresses of DNS servers
+.SH SOURCE
+.B /appl/lib/cs.b
+.br
+.B /appl/svc/cs
+.SH "SEE ALSO"
+.IR sys-dial (2),
+.IR db (6)
+.SH BUGS
+To have two looks like carelessness.

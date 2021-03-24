@@ -1,0 +1,24 @@
+#	a few sample native ports for different architectures
+ipengine	power	Bright Star Engineering (www.brightstareng.com) ipEngine-1
+#					this port has only just been done (took a few hours)
+#					and will be updated with FPGA support code later
+
+js	sparc	original port to Javastation-1, not recently tested
+
+mpc	power	basis for ports to Motorola MPC8xx boards, including FADS and ipengine
+
+pc	386	basis for ports to various PC-based platforms
+
+sa1100	arm	components of a sample Strongarm native kernel
+#		unfortunately the full set including telephony support can't yet
+#		be distributed -- we are looking for a readily available platform
+#		for people to use for development
+
+#			basic Inferno native kernel components
+port	common	native operating system components
+ip	common	Internet protocol stack, Ether and PPP media
+kfs	common	native kernel file system (same format as Plan 9's kfs)
+init	common	Limbo initialisation program (run by native kernel on startup)
+
+#	sample bootstraps
+boot	-	directory of several bootstrap programs; see README there

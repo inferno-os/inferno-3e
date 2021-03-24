@@ -1,0 +1,63 @@
+<../mkconfig
+
+LIB=lib9.a
+
+#
+# files used by all models
+#
+COMMONFILES=\
+	cleanname.$O\
+	qsort.$O\
+	runestrlen.$O\
+	strtoll.$O\
+	rune.$O\
+#
+# files used by most models.  these are added to TARGFILES in some
+# model-specific mkfiles included below
+#
+IMPORTFILES=\
+	charstod.$O\
+	create.$O\
+	dirwstat.$O\
+	dofmt.$O\
+	dorfmt.$O\
+	errfmt.$O\
+	exits.$O\
+	fmt.$O\
+	fmtfd.$O\
+	fmtlock.$O\
+	fmtprint.$O\
+	fmtquote.$O\
+	fmtrune.$O\
+	fmtstr.$O\
+	fprint.$O\
+	getfields.$O\
+	pow10.$O\
+	print.$O\
+	rerrstr.$O\
+	seek.$O\
+	seprint.$O\
+	smprint.$O\
+	snprint.$O\
+	sprint.$O\
+	strdup.$O\
+	sysfatal.$O\
+	tokenize.$O\
+	utflen.$O\
+	utfnlen.$O\
+	utfrrune.$O\
+	utfrune.$O\
+	utfecpy.$O\
+	vfprint.$O\
+	vseprint.$O\
+	vsmprint.$O\
+	vsnprint.$O\
+
+<mkfile-$TARGMODEL
+
+OFILES=$COMMONFILES $TARGFILES
+
+HFILES=$ROOT/$SYSTARG/$OBJTYPE/include/lib9.h\
+	fmtdef.h\
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE

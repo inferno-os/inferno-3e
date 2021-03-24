@@ -1,0 +1,41 @@
+.TH NS 1
+.SH NAME
+ns, nsv \- display current namespace
+.SH SYNOPSIS
+.B ns
+[
+.I pid
+]
+.PP
+.B nsv
+[
+.B \-hm
+]
+[
+.I pid
+]
+.SH DESCRIPTION
+.I Ns
+displays the construction of the namespace of the current process
+or, if an argument is given, the process whose process id is given.
+The resulting output is a series of binds and mounts in the order
+they were performed. These will have been executed by the
+kernel, the init process and/or user processes.
+.PP
+.I Nsv
+behaves in a similar fashion to
+.I ns
+but it outputs the name space as a series of mount points with 
+a list of directories bound to the mount point in the order that
+they are searched by the operating system. The
+.B -h
+option prints a usage message and the
+.B -m
+option produces a machine readable version of the name space.
+.SH SOURCE
+.B /appl/cmd/ns.b
+.br
+.B /appl/cmd/nsv.b
+.SH "SEE ALSO"
+.IR bind (1),
+.IR prog (3)

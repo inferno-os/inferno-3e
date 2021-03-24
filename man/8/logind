@@ -1,0 +1,50 @@
+.TH LOGIND 8
+.SH NAME
+logind \- login daemon
+.SH SYNOPSIS
+.B lib/logind
+.SH DESCRIPTION
+.I Logind
+is normally started by
+.IR srv (8)
+to service requests on the
+.B inflogin
+TCP/IP port,
+to provide a `signing' service (identity authentication) for a network.
+Ultimately, the client receives a certificate that can be used to establish its identity
+with any host that is willing to honour certificates from the certificate's signer.
+.PP
+The signer constructs the certificate from the contents
+of the signer's key file
+.BR /keydb/signerkey ,
+typically created by
+.IR createsignerkey (8),
+and
+the ID string and password supplied by the client (which are used to access
+.B /keydb/password
+via the
+.B Password
+module described in
+.IR security-password (2)).
+.PP
+The protocol involves an exchange of information between the client and server. The client side of this exchange can be managed by the
+.B Login
+module; see
+.IR security-login (2).
+.PP
+Client and server communicate over the Secure Socket Layer device
+.IR ssl (3).
+.SH FILES
+.TF /keydb/signerkey
+.TP
+.B /keydb/signerkey
+.TP
+.B /keydb/password
+.SH SOURCE
+.B /appl/lib/logind.b
+.SH "SEE ALSO"
+.IR security-login (2),
+.IR ssl (3),
+.IR changelogin (8),
+.IR createsignerkey (8),
+.IR srv (8)

@@ -1,0 +1,67 @@
+.TH SIGNER 8
+.SH NAME
+signer, countersigner \- daemons for set-top box authentication
+.SH SYNOPSIS
+.B lib/signer
+.PP
+.B lib/countersigner
+.SH DESCRIPTION
+.I Signer
+and
+.I countersigner
+listen for requests on the service ports
+.B infsigner
+and
+.BR infcsigner ,
+respectively.
+.PP
+.I Signer
+constructs an authentication certificate from the local key (in
+.BR /keydb/signerkey )
+and information from the requesting client (including
+the set top box ID).
+.PP
+If non-existent,
+.I signer
+creates and initialises
+.B /keydb/signerkey
+with an owner name of
+.LR * .
+That file can also be created with
+.IR createsignerkey (8).
+.PP
+.I Signer
+`blinds'
+the certificate by XOR-ing it with a random bit mask, then sends the result to the requesting client.
+The client machine's user uses that information to establish identity with a human agent on the
+signing machine.
+.I Signer
+also saves the both the `blinded' and `unblinded' result from the input in
+.BI /keydb/signed/ set-top-box-id
+for
+.IR verify (8).
+.PP
+.I Countersigner
+sends the contents of
+.BI /keydb/countersigned/ set-top-box-id
+to the requesting client.
+.SH FILES
+.TF /keydb/countersigned/set-top-box-id
+.TP
+.B /keydb/signerkey
+Secret key of the `signer' host.
+.TP
+.BI /keydb/signed/ set-top-box-id
+Repository of `blinded' and clear certificates.
+.TP
+.BI /keydb/countersigned/ set-top-box-id
+Repository of `unblinded' certificates.
+.SH SOURCE
+.B /appl/lib/signer.b
+.br
+.B /appl/lib/countersigner.b
+.SH SEE ALSO
+.IR createsignerkey (8),
+.IR register (8),
+.IR srv (8),
+.IR verify (8)

@@ -1,0 +1,44 @@
+.TH ARCHFS 4
+.SH NAME
+archfs \- mount an archive format filesystem
+.SH SYNOPSIS
+.B archfs
+[
+.B -s
+]
+[
+.B -m mountpoint
+]
+.I archfile 
+[
+.I prefix ...
+]
+.SH DESCRIPTION
+.I Archfs
+mounts the file 
+.I archfile
+in archive format on the given
+.I mountpoint
+directory. The mount is read only. Typically the archive file will have been created by 
+.I mkfs
+or
+.IR create .
+Any further names after the archive file name are treated as prefixes and only files in the
+archive whose path names begin with one of these prefixes are actually shown under the
+mount point.
+.SH OPTIONS
+.TP 10
+.B -m mountpoint
+specifies the actual mount point for the archive. The default is
+.I /mnt.
+.TP
+.B -s
+indicates that the rest of the archive can be skipped once a file is found in the archive which
+does not start with any of the given prefixes. This is useful when an archive is known to
+contain a description of it's contents in the form of a series of header files at the beginning
+of the archive and all we wish to show under the mount point are the header files.
+.SH SOURCE
+.B /appl/cmd/install/archfs.b
+.SH SEE ALSO
+.IR mkfs (8),
+.IR create (8)

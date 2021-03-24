@@ -1,0 +1,213 @@
+.TH BIND 1
+.SH NAME
+bind, mount, unmount \- change name space
+.SH SYNOPSIS
+.B bind
+[
+.I option ...
+]
+.I source target
+.PP
+.B mount
+[
+.I option ...
+]
+.I addr target
+[
+.I spec
+]
+.PP
+.B unmount
+[
+.I source
+]
+.I target
+.SH DESCRIPTION
+The
+.IR bind
+and
+.IR mount
+commands modify the file name space of the current process
+and other processes in the same name space group
+(see
+.IR sys-pctl (2)).
+For both calls, 
+.I target
+is the name of an existing file or directory in the
+current name space where the modification is to be made.
+.PP
+For
+.IR bind ,
+.I source
+is the name of an existing file or directory in the current name space.
+After a successful
+.IR bind ,
+the file name
+.I target
+is an alias for the object originally named by
+.I source ;
+if the modification doesn't hide it,
+.I source
+will also still refer to its original file.
+The evaluation of
+.I source
+(see
+.IR sys-intro (2))
+happens at the time of the
+.IR bind ,
+not when the binding is later used.
+.PP
+Both
+.I source
+and
+.I target
+files must be of the same type: either both directories or both files.
+.PP
+For 
+.IR mount,
+.I addr
+is usually a network address for a machine acting
+as a file server.
+This argument should then conform to the conventions
+described in
+.IR sys-dial (2).
+It can also be the name of a file that when opened gives a connection
+to a file server.
+The optional
+.I spec
+argument to
+.I mount
+is passed in the
+.IR attach (5)
+message and selects amongst different file trees offered by the server.
+.PP
+The effects of
+.I bind
+and
+.I mount
+can be undone by
+.IR unmount .
+If two arguments are given to 
+.IR unmount ,
+the effect is to undo a
+.I bind
+or
+.I mount
+with the same arguments. If only one argument is given, everything bound to or mounted on
+.I target
+is unmounted.
+.SH OPTIONS
+Options control aspects of the modification to the name space:
+.TP 10
+.B -r
+The default option for both 
+.IR bind
+and
+.IR mount  .
+Replace the
+.I target
+file by the new one 
+.I source.
+Henceforth, an evaluation of the pathname
+.I target
+will be translated to the new file.
+If they are directories (for
+.IR mount ,
+this condition is true by definition),
+.I target
+becomes a
+.I "union directory"
+consisting of one directory (the 
+.IR source
+directory).
+.TP
+.B -b
+Both files must be directories.
+Add the 
+.IR source
+directory to the beginning
+of the union directory represented by the 
+.IR target 
+directory.
+.TP
+.B -a
+Both files must be directories.
+Add the 
+.IR
+source 
+directory to the end
+of the union directory represented by the 
+.IR target 
+directory.
+.TP
+.B -c
+This can be used in addition to any of the above to permit
+creation in a union directory.
+When a new file is created in a union directory,
+it is placed in the first element of the union that permits creation.
+.TP
+.B -A
+For 
+.I mount
+only. Do not authenticate the connection to the server before proceeding with
+.IR mount .
+Otherwise the connection is authenticated by
+.IR security-auth (2).
+.TP
+.BI -C " alg"
+For
+.I mount
+only,
+specify the algorithm, 
+.IR alg ,
+to be used following authentication for digesting or encryption. See 
+.IR ssl (3)
+for the supported algorithms.
+The default is
+.BR none :
+.IR ssl (3)
+is not used after authentication.
+.TP
+.BI -f " kfile "
+For mount only, specify the keyfile to be used when authenticating.
+The default is
+.BI /usr/ user /keyring/default .
+See 
+.IR keyring-auth (2)
+for more details.
+.PP
+A union directory unites the contents of the source and target directories.
+If the same name appears in both directories, the name used is the one in the
+directory that is bound before the other.
+In particular, if the directories have subdirectories of the same name, only
+the contents of the subdirectory in the top directory will be seen.
+If the subdirectory contents are themselves to be united, that must be done
+first in a separate
+.I bind
+or
+.IR mount .
+.SH CAVEAT
+The
+.B #
+character in the name of a kernel device
+must be quoted when used in a
+.I bind
+or
+.I unmount
+command, or the shell will take it as the start of a comment.
+.SH SOURCE
+.B /appl/cmd/bind.b
+.br
+.B /appl/cmd/mount.b
+.br
+.B /appl/cmd/unmount.b
+.SH SEE ALSO
+.IR sh (1),
+.IR keyring-auth (2),
+.IR security-auth (2),
+.IR sys-intro (2),
+.IR sys-bind (2),
+.IR sys-dial (2),
+.IR intro (3),
+.IR getauthinfo (8)
+

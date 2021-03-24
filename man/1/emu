@@ -1,0 +1,174 @@
+.TH EMU 1E
+.SH NAME
+emu \- Inferno emulator
+.SH SYNOPSIS
+.B emu
+[
+.BI \-g Xsize x Ysize
+]
+[
+.BR \-c [0-9]
+]
+[
+.BR \-d [012]
+]
+[
+.BR \-m [0-9]
+]
+.RB [ \-s ]
+[
+.BI \-p pool = maxsize
+]
+[
+.BI \-f font
+]
+[
+.BI \-r rootpath
+]
+.RB [ \-7 ]
+.RB [ \-2 ]
+.RB [ \-d ]
+[
+.I cmd
+.RI [ " arg ... " ]
+]
+.SH DESCRIPTION
+.I Emu
+provides the Inferno emulation environment.
+The emulator runs as an application under the
+machine's native operating system, and
+provides system services and a Dis virtual machine for Inferno applications.
+.PP
+.I Emu
+starts an Inferno initialisation program
+.BR /dis/emuinit.dis ,
+whose path name is interpreted in the
+Inferno file name space,
+not in
+the native operating system's name space.
+It in turn invokes the shell
+.BR /dis/sh.dis
+by default or the optional
+.I cmd
+and its arguments.
+If the
+.B \-d
+option is specified,
+.I emu
+instead invokes
+.BR /dis/lib/srv.dis ,
+turning the
+.I emu
+instance into an Inferno service process on the network
+(see
+.IR srv (8)).
+.PP
+The emulator supports the following options:
+.TP
+.BI \-c n
+Unless specified otherwise by the module (see
+.B wm/rt
+in
+.IR wm-misc (1)),
+.I emu
+uses an interpreter to execute Dis instructions.
+Setting
+.I n
+to 1 (the default value is 0)
+makes the default behaviour
+to compile Dis
+into native instructions when a module is loaded,
+resulting in faster execution but larger run-time size.
+Setting
+.I n
+to values larger than 1 enables increasingly detailed traces of the compiler.
+.TP
+.BI \-g Xsize x Ysize
+Define screen width and height in pixels.
+The default values are 640 and 480 respectively.
+Values smaller than the defaults are disallowed.
+.TP
+.BI \-f font
+Specify the default font for the
+.B tk
+module.
+The path is interpreted in the Inferno name space.
+If unspecified, the
+.B font
+variable has value
+.BR /fonts/lucm/unicode.9.font .
+.TP
+.BI \-r rootpath
+Specify the host system directory that
+.I emu
+will serve as its root.
+The default value is
+.B /usr/inferno
+on most systems, but
+.BR \eusers\einferno
+on Windows.
+.TP
+.B \-s
+Specify how the emulator deals with traps reported by the operating system.
+By default, they suspend execution of the offending thread within the virtual machine
+abstraction.
+The
+.B \-s
+option causes
+.I emu
+itself to trap, permitting debugging of the
+broken host operating system process that results when a trap occurs.
+(This is intended to allow debugging of
+.IR emu ,
+not Inferno applications.)
+.TP
+.BI \-p pool = maxsize
+Specify the maximum size in bytes of the named memory allocation pool.
+The pools
+are:
+.RS
+.TP \w'imagexxx'u
+.B main
+the general malloc arena
+.TP
+.B heap
+the Dis virtual machine heap
+.TP
+.B image
+image storage for the display
+.RE
+.TP
+.B \-7
+When host graphics is provided by X11, request a 7-bit colour map;
+use this option only if X11 refused to allow
+.I emu
+to configure the normal (default) 8-bit Inferno colour map.
+.TP
+.B \-2
+Use greyscale (Windows only).
+.PP
+Options may also be set in the host operating system's environment variable
+.BR EMU ;
+they are overridden by options supplied on the command line.
+.SH EXAMPLE
+To start
+.B wm/logon
+directly:
+.IP
+.EX
+EMU='-g800x600 -c1'
+emu /wm/logon.dis -u inferno
+.EE
+.SH FILES
+.TF /dis/emuinit.dis
+.TP
+.B /dis/emuinit.dis
+The default initialisation program.
+.TP
+.B /dis/sh.dis
+The default Inferno shell.
+.SH SOURCE
+.B /emu
+.SH "SEE ALSO"
+.IR limbo (1),
+.IR wm-misc (1)

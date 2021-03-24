@@ -1,0 +1,144 @@
+.TH FORMAT 8 native
+.SH NAME
+format \- format floppy diskette
+.SH SYNOPSIS
+.B disk/format
+[
+.B -t
+.I type
+] [
+.B -f
+] [
+.B -d
+] [
+.B -b
+.I bfile
+] [
+.B -c
+.I csize
+] [
+.B -l
+.I label
+]
+.I drive
+[
+.I files
+\&... ]
+.SH DESCRIPTION
+.I Format
+initialises the floppy diskette in the disk file named
+.IR drive ,
+for example
+.BR /dev/fd0disk .
+By default it formats the diskette and copies in the given
+.IR files .
+The options are:
+.TP
+.B -f
+Do not physically format the disc. Used
+to install an MS-DOS filesystem on a
+previously formatted disc. With this option,
+.I drive
+can be a plain file.
+.TP
+.B -t
+specify a density and type of disk to be prepared.
+The possible
+.I types
+are:
+.RS
+.TP
+.B 3½DD
+3½" double density, 737280 bytes
+.TP
+.B 3½HD
+3½" high density, 1474560 bytes
+.TP
+.B 5¼DD
+5¼" double density, 368640 bytes
+.TP
+.B 5¼HD
+5¼"  high density, 1146880 bytes
+.TP
+.B hard
+Hard disc, used in conjunction with
+.B -f
+to format arbitrary sized plain files.
+.PP
+The default is the highest possible on the device, unless
+.B -f
+is used, in which case the default is
+.BR 3½HD .
+.RE
+.TP
+.B -d
+add MS-DOS parameter block,
+file access table (FAT), and root directory to the start of
+the floppy.
+.PP
+The remaining options have effect only when
+.B -d
+is specified:
+.TP
+.B -b
+use the contents of
+.I bfile
+as the bootstrap block
+installed in sector 0.
+.TP
+.B -c
+use a DOS cluster size of
+.I csize
+sectors when creating the DOS FAT.
+.TP
+.B -l
+add a
+.I label
+when creating the DOS parameter block.
+.PP
+Again under
+.BR -d ,
+any
+.I files
+listed are added, in order,
+to the root
+directory of the MS-DOS filesystem.  The files are
+contiguously allocated and created with
+the
+.B READONLY
+attribute set.
+.PP
+The file
+.B /os/boot/pc/bb
+is an example of a suitable
+.I bfile
+to make the diskette a boot diskette.
+It gets loaded by the BIOS at 0x7C00,
+reads the root directory into address 0x7E00, and looks at
+the first root directory entry.
+If that file is called
+.BR B.COM ,
+it uses
+single sector reads to load the file into address 0x10000 and then
+jumps to the loaded file image.
+.SH EXAMPLE
+Create a boot floppy on a previously formatted diskette:
+.IP
+.EX
+disk/format -f -b bb -d /dev/fd0disk /os/boot/pc/b.com
+.EE
+.PP
+Format an
+.IR ftl (3)
+file system:
+.IP
+.EX
+disk/format -fdt hard '#'X/ftldata
+.EE
+.SH SOURCE
+.B /appl/cmd/disk/format.b
+.br
+.B /os/boot/pc/bb.s
+.SH SEE ALSO
+.IR floppy (3),
+.IR b.com (8)

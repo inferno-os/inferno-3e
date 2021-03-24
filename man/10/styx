@@ -1,0 +1,201 @@
+.TH STYX 10.2
+.SH NAME
+Fcall, convS2M, convD2M, convM2S, convM2D, fcallconv, dirconv \- C interface to Inferno File protocol
+.SH SYNOPSIS
+.B #include <styx.h>
+.PP
+.B
+int convS2M(Fcall *f, char *ap)
+.PP
+.B
+int convD2M(Dir *d, char *ap)
+.PP
+.B
+int convM2S(char *ap, Fcall *f, int n)
+.PP
+.B
+int convM2D(char *ap, Dir *d)
+.PP
+.B
+int dirconv(Fmt*)
+.PP
+.B
+int fcallconv(Fmt*)
+.SH DESCRIPTION
+These
+routines
+convert messages in the machine-independent format of
+the Inferno file protocol,
+Styx (see section 5 of this manual)
+to and from a more convenient form,
+an
+.B Fcall
+structure:
+.PP
+.EX
+.if n .ta 8n +6n +5n +6n +18n +4n
+.if t .ta \w'    'u +\w'ushort'u +\w'uname[NAMELEN];'u +\w'/* 'u
+typedef
+struct	Fcall
+{
+	char	type;
+	short	fid;
+	ushort	tag;
+	ushort	oldtag;		/* T-Flush */
+	Qid	qid;		/* R-Attach, R-Walk, R-Open, R-Create */
+	char	uname[NAMELEN];		/* T-Attach */
+	char	aname[NAMELEN];		/* T-Attach */
+	char	ename[ERRLEN];		/* R-Error */
+	long	perm;		/* T-Create */ 
+	short	newfid;		/* T-Clone */
+	char	name[NAMELEN];		/* T-Walk, T-Create */
+	char	mode;		/* T-Create, T-Open */
+	long	offset;		/* T-Read, T-Write */
+	long	count;		/* T-Read, T-Write, R-Read */
+	char	*data;		/* T-Write, R-Read */
+	char	stat[DIRLEN];		/* T-Wstat, R-Stat */
+} Fcall;
+.EE
+.PP
+This structure is defined in
+.BR <styx.h> .
+See the other pages in this section of the manual
+for a full description of Styx messages and their encoding.
+For all message types, the
+.B type
+field of an
+.B Fcall
+holds one of
+.BR Tnop ,
+.BR Rnop ,
+.BR Tattach ,
+.BR Rattach ,
+etc. (defined in an enumerated type in
+.BR <styx.h> ).
+.B Fid
+is used by most messages, and
+.B tag
+is used by all messages.
+The other fields are used selectively by the message types
+given in comments.
+.PP
+.B ConvM2S
+takes a buffer
+.I ap
+of length
+.IR n ,
+and attempts to unpack a complete Styx message to fill in
+.B Fcall
+structure
+.IR f .
+To help
+a caller that is reading and processing Styx messages
+from an input stream that does not preserve message boundaries,
+the return value distinguishes three cases:
+.IP \-
+If the passed message,
+including any data for
+.B Twrite
+and
+.B Rread
+messages,
+forms a complete, properly formatted Styx message,
+the return value is the number of bytes consumed.
+It can be less than
+.IR n
+when further messages or partial messages remain in
+.IR ap .
+For
+.B Twrite
+and
+.B Tread
+messages,
+.IB f \->data
+is set to a pointer into the argument message,
+not a copy.
+.IP \-
+If the message in
+.I ap
+is incomplete but valid thus far, the return value is 0;
+more bytes must be read and added to the buffer to
+complete the message.
+.IP \-
+If the message is invalid, the return value is -1.
+.PP
+.B ConvS2M
+does the reverse conversion, turning
+.I f
+into a message starting at
+.IR ap .
+The length of the resulting message is returned;
+it returns -1 if the message type is invalid.
+For
+.B Twrite
+and
+.B Rread
+messages,
+.IB f \->count
+bytes starting at
+.IB f \->data
+are copied into the message.
+.PP
+The constant
+.B MAXMSG
+is the length of the longest message, excluding data;
+.B MAXFDATA
+(8192)
+is the maximum
+.B count
+in a read or write message.
+Thus messages are guaranteed to be shorter than
+.B MAXMSG+MAXFDATA
+bytes long.
+.PP
+Another structure is
+.BR Dir ,
+used by the routines described in
+.IR sys-stat (2).
+.B ConvM2D
+converts the machine-independent form starting at
+.I ap
+into
+.IR d
+and returns the length of the encoding.
+.B ConvD2M
+does the reverse translation,
+also returning the length of the encoding.
+.PP
+.BR Dirconv
+and
+.BR fcallconv
+are
+.IR print (10.2)
+formatting routines.
+They convert
+.BR Dir*
+and
+.BR Fcall*
+values into string representations of the directory buffer
+or
+.B Fcall
+buffer.
+.B Fcallconv
+is installed under format
+.B F
+in the Inferno emulator and kernel.
+.SH SOURCE
+.B /include/styx.h
+.SH SEE ALSO
+.IR intro (2),
+.IR styxlib (2),
+.IR sys-stat (2),
+.IR intro (5),
+.IR intro (10),
+.IR print (10.2)
+.SH BUGS
+The offset and directory length fields have 8 bytes in the protocol,
+but these routines assume they fit into a long.
+.PP
+.B ConvS2M
+should check for counts exceeding
+.BR MAXFMSG .

@@ -1,0 +1,46 @@
+<HTML><HEAD>
+<TITLE>Inferno Contribution: flops</TITLE>
+</HEAD><BODY>
+<H3>Inferno Contribution: flops</H3>
+This contribution comes from <a href="mailto:rbohrer@lucent.com">Robert Bohrer</a> and 
+is a floating point benchmark program. He translated the original flops.c program into Limbo as
+flops.b. The results of several different tests are display as Mflops.
+
+<p>
+Example output on a 500Mhz AMD K6-2  PC running Inferno hosted under Plan 9 (in compiled mode):
+<pre>
+% flops
+
+   FLOPS Limbo Program, V2.0 18 Dec 1992
+
+   Module     Error        RunTime      MFLOPS
+                            (usec)
+     1      1.3358e-12      0.3712     37.7200
+     2      2.0517e-13      0.2040     34.3111
+     3      1.7542e-14      0.3872     43.9028
+     4     -5.4512e-14      0.3817     39.3024
+     5      3.3307e-16      0.7452     38.9164
+     6     -1.9040e-14      0.6736     43.0527
+     7      2.6034e-11      0.4809     24.9553
+     8     -5.4068e-14      0.7506     39.9659
+
+   Iterations      =   64000000
+   NullTime (usec) =     0.0120
+   MFLOPS(1)       =    36.9503
+   MFLOPS(2)       =    33.9115
+   MFLOPS(3)       =    38.5193
+   MFLOPS(4)       =    41.4936
+</pre>
+
+<HR>
+The following files are available for downloading:<TABLE BORDER="0">
+<TR>
+<TD><a href="flops.b">flops.b</a></TD>
+<TD>(21569 bytes)</TD>
+</TR>
+<TR>
+<TD><a href="flops.c">flops.c</a></TD>
+<TD>(33039 bytes)</TD>
+</TR>
+</TABLE>
+</BODY></HTML>

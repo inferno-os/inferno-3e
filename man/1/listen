@@ -1,0 +1,144 @@
+.TH LISTEN 1
+.SH NAME
+listen, dial \- network connections
+.SH SYNOPSIS
+.B listen
+[
+.B -A
+] [
+.B -a
+.I alg
+]... [
+.B -f
+.I keyfile
+] [
+.B -i
+.BI { initscript }
+] [
+.I addr
+.BI { command }
+]...
+.br
+.B dial
+[
+.B -A
+] [
+.B -a
+.I alg
+] [
+.B -f
+.I keyfile
+]
+.I addr
+.BI { command }
+.SH DESCRIPTION
+.I Listen
+waits for an incoming network connection on any
+given
+.IR addr ,
+(as accepted by
+.B announce
+in
+.IR sys-dial (2))
+and then invokes
+.IR sh (1)
+to run the associated
+.IR command .
+If the
+.B -A
+option is specified, no authentication or encryption will
+take place on the connection; otherwise
+.I listen
+will attempt to authenticate the party at the other
+end of the connection, allowing any given
+.I alg
+to be used to encrypt and/or digest the
+connection's data.. If neither
+.B -A
+or any
+.B -a
+option is given, then
+.I listen
+will allow any algorithm allowed by the local
+.IR ssl (3)
+device.
+If
+.I keyfile
+is specified, then it will be used as the server's certificate;
+otherwise
+.BI /usr/ user /keyring/default
+will be used.
+If an
+.I initscript
+is provided, it is executed by each listener
+after announcing its network connection,
+with the shell variable
+.B net
+set to the name of the corresponding network directory
+(see
+.IR sys-dial (2)),
+before listening for incoming calls.
+.PP
+.I Dial
+is the complement of
+.IR listen .
+It tries to make a connection to
+.IR addr .
+If the
+.B -A
+option is given, no authentication or encryption will
+take place; otherwise Inferno authentication and encryption
+will be performed as usual, using
+.I alg
+if given, or a default algorithm otherwise.
+.I Keyfile
+is used for the certificate if given, otherwise
+.BI /usr/ user /keyring/ addr\fR,\fP
+if it exists, and failing that,
+.BI /usr/ user /keyring/default\fR.\fP
+.I Alg
+is used for the encryption/digest algorithm
+on the connection.
+When the connection is made,
+.I command
+is run in the context of that connection, as described below.
+.PP
+For both
+.I dial
+and
+.IR listen ,
+when the command is run,
+.B $user
+is set to the name of the authenticated user at the other
+end of the connection (if authentication
+is being used), and
+.B $net
+is set to the
+.B /net
+directory corresponding to the connection.
+The standard input and output of the command
+is redirected to the network connection (standard
+error is unaffected).
+.SH EXAMPLE
+Run a custom login daemon and an echo server that
+logs incoming connections:
+.EX
+listen (
+	'tcp!*!echo' {
+		echo got connection from `{cat $net/remote} >[1=2]
+		cat
+	}
+	'tcp!*!inflogin' {
+		customlogind
+	}
+)
+.EE
+Dial up the above echo server:
+.EX
+dial tcp!somehost!echo {echo made connection >[1=2]; echo hello}
+.EE
+.SH SOURCE
+.B /appl/cmd/listen.b
+.SH "SEE ALSO"
+.IR srv (8),
+.IR sys-dial (2)

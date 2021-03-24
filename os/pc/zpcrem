@@ -1,0 +1,158 @@
+# remote pc - for benchmarking
+dev
+	root
+	cons
+	env
+	mnt
+	pipe
+	prog
+	rtc
+	srv
+	ssl
+
+	draw	screen
+
+	ip		bootp ip ipaux media netlog ppp compress
+	ether		netif
+
+#	ata
+	ns16552		dma
+	tinyfs
+	kprof
+
+ip
+	il
+	tcp
+	udp
+	icmp
+
+lib
+	interp
+	keyring
+	prefab
+	memlayer
+	memimage
+	tk
+	image
+	crypt
+	math
+	kern
+
+link
+	ether2000	ether8390
+	etherelnk3	pci
+	ps2mouse
+
+vga
+	vgaclgd542x
+	vgamach64ct	pci
+	vgas3
+
+misc
+	archgeneric
+
+mod
+	sys
+	draw
+	prefab
+	tk
+	keyring
+	math
+
+init
+	reminit
+
+code
+	int cflag = 1;
+	int consoleprint = 1;
+	int novgascreen = 1;
+	int kernel_pool_pcnt = 10;
+	int main_pool_pcnt = 40;
+	int heap_pool_pcnt = 20;
+	int image_pool_pcnt = 40;
+	int swcursor=1;
+	int pckdebug = 0;
+	int panicreset = 0;
+
+port
+	alarm
+	alloc
+	auth
+	chan
+	dev
+	dial
+	dis
+	discall
+	env
+	exception
+	exportfs
+	inferno
+	latin1
+	pgrp
+	print
+	proc
+	qio
+	qlock
+	styx
+	sysfile
+	taslock
+	utils
+	xalloc
+
+root
+	/chan
+	/dev
+	/dis
+	/env
+	/n
+	/net
+	/nvfs
+	/prog
+	/icons
+	/osinit.dis
+	/usr
+	/services
+	/services.txt
+	/dev/draw
+	/dis/lib
+	/dis/svc
+	/dis/wm
+	/dis/sh.dis
+	/dis/date.dis
+	/dis/ls.dis
+	/dis/bind.dis
+	/dis/cat.dis
+	/dis/echo.dis
+	/dis/pwd.dis
+	/dis/cd.dis
+	/dis/ps.dis
+	/dis/netstat.dis
+	/dis/mount.dis
+	/dis/imount.dis
+	/dis/unmount.dis
+	/dis/kill.dis
+	/n/remote
+	/n/client
+	/n/ssl
+	/services/cs
+	/services/server
+	/services/logs
+	/dis/lib/cs.dis
+	/dis/lib/srv.dis
+	/dis/lib/newns.dis
+	/dis/lib/ir.dis
+	/dis/lib/auth.dis
+	/dis/lib/ssl.dis
+	/dis/lib/bufio.dis
+	/dis/lib/filepat.dis
+	/dis/lib/readdir.dis
+	/dis/lib/daytime.dis
+	/dis/lib/service.dis
+	/dis/lib/styxd.dis
+	/dis/lib/rstyxd.dis
+	/dis/lib/virgild.dis
+	/dis/lib/cpuslave.dis
+	/dis/lib/devpointer.dis
+	/dis/lib/styx.dis
+	/services/cs/db
+	/services/server/config

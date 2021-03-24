@@ -1,0 +1,98 @@
+<../../mkconfig
+
+#Configurable parameters
+
+CONF=ipaq				#default configuration
+CONFLIST=ipaq
+
+SYSTARG=$OSTARG
+OBJTYPE=arm
+INSTALLDIR=$ROOT/Inferno/$OBJTYPE/bin	#path of directory where kernel is installed
+#end configurable parameters
+
+<$ROOT/mkfiles/mkfile-$SYSTARG-$OBJTYPE	#set vars based on target system
+
+<| $SHELLNAME ../port/mkdevlist $CONF	#sets $IP, $DEVS, $ETHERS, $VGAS, $PORT, $MISC, $LIBS, $OTHERS
+
+KTZERO=0xC0008010
+
+OBJ=\
+	l.$O\
+	clock.$O\
+	div.$O\
+	dma.$O\
+	fpi.$O\
+	fpiarm.$O\
+	fpimem.$O\
+	main.$O\
+	mmu.$O\
+	screen.$O\
+	trap.$O\
+	$CONF.root.$O\
+	$IP\
+	$DEVS\
+	$ETHERS\
+	$LINKS\
+	$PORT\
+	$MISC\
+	$OTHERS\
+
+LIBNAMES=${LIBS:%=lib%.a}
+LIBDIRS=$LIBS
+
+HFILES=\
+	u.h\
+	mem.h\
+	dat.h\
+	fns.h\
+	io.h\
+	fpi.h\
+
+CFLAGS=-wFV -I$ROOT/Inferno/$OBJTYPE/include -I$ROOT/include -I$ROOT/interp
+KERNDATE=`{$NDATE}
+
+default:V: i$CONF.gz i$CONF.p9 k.gz
+
+install:V: $INSTALLDIR/i$CONF $INSTALLDIR/i$CONF.gz $INSTALLDIR/i$CONF.p9.gz $INSTALLDIR/i$CONF.raw
+
+i$CONF: $OBJ $CONF.c $CONF.root.h $LIBNAMES i$CONF.p9
+	$CC $CFLAGS '-DKERNDATE='$KERNDATE $CONF.c
+	$LD -s -o $target -H5 -T0xC0008010 -R4 -l $OBJ $CONF.$O $LIBFILES
+
+i$CONF.p9: $OBJ $CONF.c $CONF.root.h $LIBNAMES
+	$CC $CFLAGS '-DKERNDATE='$KERNDATE $CONF.c
+	$LD -o $target -T0xC0008010 -R4 -l $OBJ $CONF.$O $LIBFILES
+
+i$CONF.gz: i$CONF
+	rm -f i$CONF.gz
+	gzip -9 <i$CONF >i$CONF.gz
+
+<../port/portmkfile
+
+../init/$INIT.dis:	../init/$INIT.b
+		cd ../init; mk $INIT.dis
+
+clock.$O:	$ROOT/Inferno/$OBJTYPE/include/ureg.h
+devether.$O:	$ROOT/Inferno/$OBJTYPE/include/ureg.h
+devsapcm.$O:	$ROOT/Inferno/$OBJTYPE/include/ureg.h
+main.$O:	$ROOT/Inferno/$OBJTYPE/include/ureg.h
+trap.$O:	$ROOT/Inferno/$OBJTYPE/include/ureg.h
+
+devether.$O $ETHERS:	etherif.h ../port/netif.h
+$IP dummy:		../ip/ip.h
+
+dummy:V:
+
+# to be moved to port/interp 
+bench.h:D: ../../module/bench.m
+	rm -f $target && limbo -a -I../../module ../../module/bench.m > $target
+benchmod.h:D:  ../../module/bench.m
+	rm -f $target && limbo -t Bench -I../../module ../../module/bench.m > $target
+devbench.$O: bench.h benchmod.h
+
+k.gz:	i$CONF.gz
+	cat inflate i$CONF.gz >k.gz
+	echo burble burble >>k.gz
+
+devaudio.$O:	devaudio.c
+	$CC $CFLAGS devaudio.c

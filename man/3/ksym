@@ -1,0 +1,75 @@
+.TH KSYM 3
+.SH NAME
+ksym \- kernel symbols
+.SH SYNOPSIS
+.B bind -a '#N' /dev
+.PP
+.B /dev/ksym
+.SH DESCRIPTION
+.I Ksym
+is intended to aid native kernel and
+.IR emu (1)
+monitoring and debugging.
+It maps kernel addresses to symbolic names obtained from the symbol
+table of a kernel executable.
+It also arranges that the format
+.L %N
+if used by the kernel
+.IR print (10.2)
+will produce a symbolic address instead of a hexadecimal number
+when a known address is printed.
+.PP
+.I Ksym
+serves a directory containing a single file,
+.BR ksym .
+.PP
+A write to the file must provide UTF-encoded lines containing commands or map entries,
+each line ended by a newline character.
+A line may be split across two writes to allow a symbol file to be copied into
+the device by
+.IR cat (1)
+or
+.IR cp (1).
+There are two commands:
+.TP
+.B clear
+Empty the current map. The map is also emptied by each write to file offset 0.
+.TP
+.B kernel
+Make entries for
+.L _kzero
+and
+.LR etext ,
+representing the start and end of the kernel text segment.
+.PD
+.PP
+Each map entry has the form:
+.IP
+.I "address name"
+.PP
+where
+.I address
+is an 8 digit unsigned hexadecimal number and
+.I name
+is a UTF encoded string giving
+the symbolic name to be associated with that address in the current map.
+.PP
+The file may be read to see the contents of the current map.
+Each read returns as many lines of the following form as will fit
+in the caller's buffer:
+.IP
+.I "address name"
+.PP
+where
+.I address
+and
+.I name
+are as defined above for a write request.
+.SH SOURCE
+.B /emu/devksym.c
+.br
+.B /os/port/devksym.c
+.SH SEE ALSO
+.IR kprof (3),
+.IR acid (10.1),
+.IR nm (10.1)

@@ -1,0 +1,36 @@
+<../../mkconfig
+
+TARG=kif
+
+OFILES=	acid.$O\
+	bits.$O\
+	com.$O\
+	com64.$O\
+	$TARGMODEL.$O\
+	dcl.$O\
+	dpchk.$O\
+	lex.$O\
+	mac.$O\
+	mpatof.$O\
+	scon.$O\
+	sub.$O\
+	y.tab.$O\
+	oc.$O\
+ 
+HFILES=	cc.h\
+	y.tab.h\
+ 
+YFILES=	cc.y\
+
+LIBS=bio 9
+
+BIN=$ROOT/$OBJDIR/bin
+
+<$ROOT/mkfiles/mkone-$SHELLTYPE
+
+CFLAGS=	$CFLAGS -I../include
+
+mac.$O: macbody
+
+lex.$O:	lex.c
+	$CC $CFLAGS '-DCPP="/bin/cpp"' lex.c

@@ -1,0 +1,25 @@
+The contents herein includes some software initially developed by
+Lucent Technologies Inc. and others, and is subject to the
+terms of the Lucent Technologies Inc. Plan 9 Open Source License Agreement.
+A copy of the Plan 9 open source Licence Agreement is
+available at http://plan9.bell-labs.com/plan9dist/license.html or
+by contacting Lucent Technologies at http://www.lucent.com.
+
+All software distributed under such Agreement is distributed on
+an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either
+express or implied.  See the Lucent Technologies Inc. Plan 9
+Open Source Licence Agreement for the specific language
+governing all rights, obligations and limitations under such
+Agreement.
+
+Portions of the software developed by Lucent Technologies and others are
+Copyright © 2000, 2001.  All rights reserved.
+
+Contributors: Vita Nuova Holdings Limited (June 2001).
+
+	*************
+
+The above notice refers mainly to devaudio.c (which we intend to replace shortly)
+some code in the PCMCIA support, and inflate.
+
+The etherwavelan.c driver was contributed to Plan 9 by nemo@gsyc.escet.urjc.es

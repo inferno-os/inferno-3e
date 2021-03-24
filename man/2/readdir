@@ -1,0 +1,69 @@
+.TH READDIR 2
+.SH NAME
+readdir \- read directory and sort files
+.SH SYNOPSIS
+.EX
+include "readdir.m";
+readdir := load Readdir Readdir->PATH;
+
+NAME, ATIME, MTIME, SIZE, NONE: con iota;
+COMPACT:    con (1<<4);
+DESCENDING: con (1<<5);
+init:  fn(path: string, sortkey: int): (array of ref Dir, int);
+.EE
+.SH DESCRIPTION
+.B Readdir
+reads the contents of the directory
+.I path
+and sorts the resulting array according to
+.IR sortkey .
+.PP
+Each element in the returned array is a reference to one
+.B Dir
+element in the array formed by the
+.B dirread
+system call.
+.B Readdir
+also returns the number of entries read,
+or \-1 on failure.
+.PP
+The sorting criteria for the returned array are based on
+.I sortkey
+as follows:
+.PP
+.TF MTIME
+.PD
+.TP
+.B NAME
+Sort files alphabetically by name.
+.TP
+.B ATIME
+Sort files by access time, most recently accessed first.
+.TP
+.B MTIME
+Sort files by modification time, most recently modified first.
+.TP
+.B SIZE
+Sort files by size, largest file first.
+.TP
+.B NONE
+Files are left in directory order, unsorted.
+.PP
+If the value
+.B DESCENDING
+is or'd into any of the values above, except
+.BR NONE ,
+the order of sorting is reversed.
+.PP
+The sort used is stable, of particular importance in the presence of
+duplicate names in a union mount.
+If the value
+.B COMPACT
+is or'd into any of the values above, including
+.BR NONE ,
+only the first (outermost) entry with a given name will be returned from reading
+a union mount, if names are duplicated in the union.
+.SH SOURCE
+.B /appl/lib/readdir.b
+.SH SEE ALSO
+.IR sys-dirread (2)

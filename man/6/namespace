@@ -1,0 +1,124 @@
+.TH NAMESPACE 6
+.SH NAME
+namespace \- name space description file
+.SH DESCRIPTION
+Namespace files describe how to construct a name space from scratch,
+or add to an existing name space.
+The files are interpreted by the
+.B Newns
+module of
+.IR newns (2),
+invoked by commands such as
+.IR wm (1)
+and by other system services.
+.PP
+The name space description file contains one or more
+lines each of which specifies one name space operation.
+Empty lines and lines with
+.B #
+as the first non-space character are ignored.
+.PP
+The known operations and their arguments are:
+.TP
+.B "bind [-abrci] \f2old\fP \f2new\fP"
+Use 
+.I new
+as an alias for file or directory
+.IR old .
+Options
+.BR a ,
+.BR b ,
+.BR c ,
+and
+.B r
+translate to flag values
+.BR Sys\->MAFTER ,
+.BR Sys\->MBEFORE ,
+.B Sys\->MCREATE
+and
+.B Sys\->MREPL
+respectively, of
+.IR sys-bind (2).
+Option
+.B i
+means to ignore errors.
+.TP
+.B cd \f2directory\fP
+Change working directory to
+.IR directory .
+.TP
+.B fork
+Split the name space before modification.
+This is equivalent to passing a value of
+.B Sys->FORKNS
+to
+.IR sys-pctl (2).
+.TP
+.B "mount [-abrci] [-k \f2keyfile\fP] [-C \f2alg\fP] [\f2net\fP!]\f2machine\fP \f2dir\fP [\f2spec\fP]"
+Mount the file tree of
+.I machine
+upon directory
+.IR dir .
+Options
+.BR a ,
+.BR b ,
+.BR c ,
+.BR i ,
+and
+.B r
+are the same as for
+.BR bind .
+The tokens
+.I dir
+and
+.I spec
+translate to
+.I old
+and
+.I aname
+of
+.B mount
+as described under
+.IR sys-bind (2).
+The
+.B -k
+and
+.B -C
+options are the same as those for the
+.I mount
+command (see
+.IR bind (1)).
+.TP
+.B new
+Create a new name space in which the current directory
+becomes the root directory;
+typically used after
+.BR cd .
+This is equivalent to passing a value of
+.B Sys->NEWNS
+to
+.IR sys-pctl (2).
+.TP
+.B nodev
+Disallow device attaches.
+This is equivalent to passing a value of
+.B Sys->NODEVS
+to
+.IR sys-pctl (2).
+.TP
+.B unmount [-i] [\f2name\fP] \f2from\fP
+If two arguments are given, undo a
+.B bind
+or
+.B mount
+with the same arguments.
+If only one argument is given, everything bound to or mounted on
+.I from
+is unmounted.
+The
+.B -i
+option means ignore errors.
+.SH SEE ALSO
+.IR nsbuild (1),
+.IR wm (1),
+.IR newns (2)

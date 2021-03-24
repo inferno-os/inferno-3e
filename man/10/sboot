@@ -1,0 +1,626 @@
+.TH SBOOT 10.8 Strongarm
+.SH NAME
+sboot \- SA110 and SA1100 bootstrap program
+.SH SYNOPSIS
+.EX
+.IR "From armsd, rdp, or exported styxmon connection" :
+load sboot
+go
+.EE
+.SH DESCRIPTION
+.I Sboot
+is a standalone executable
+for the StrongARM architectures (SA110 and SA1100) that
+loads and starts a program in Inferno boot format (for the
+ARM, this is either an AIF or Plan9-style executable).
+.I Sboot
+loads  the  program at the entry address specified by the
+header, usually
+.L 0x8000
+on the SA1100.  After loading,
+control is passed to the entry location specified in the executable's header.
+.SS "Loading sboot from armsd"
+If a board with the old Demon-based monitor is being used,
+there are at least four ways that
+.I sboot
+can be loaded from
+the  ARM  debugger
+.BR armsd .
+If  the
+.I sboot
+binary file
+resides on the host in the current directory,  it  can  be
+loaded with:
+.IP
+.EX
+load sboot
+go
+.EE
+.PP
+If
+.I sboot
+has already been loaded into the flash memory or
+ROM at its default offset
+.RL ( 0x8000
+on  the  SWoRD  board),
+then this shortcut can be used:
+.IP
+.EX
+pc=0x40
+go
+.EE
+.PP
+If
+.I sboot
+has been loaded into the flash memory or ROM at a
+different address, then  the  following  sequence  can  be
+used:
+.IP
+.EX
+r0=<offset of sboot>
+pc=0x48
+go
+.EE
+.PP
+Finally,  if  the  system  has been set up to autoboot, by
+setting the autoboot vector (described with the
+.B P
+command,  below),  then 
+.I sboot
+will be run automatically upon
+booting and will attempt to load the kernel automatically.
+.PP
+After
+.I sboot
+is started, unless it is in autoboot mode, a
+command prompt
+.RL ( >>> )
+will appear on  the  debugger  console.
+.SS "Loading sboot from rdp"
+With
+.IR rdp ,
+a small
+.B armsd
+replacement that runs under Inferno,
+.I sboot
+will automatically start unless the
+.B -c
+option is given to
+.IR rdp .
+If the
+.B -c
+option is used (`enter command mode'), the
+.L sb
+.IR mash (1)
+command provided in
+.B /usr/ddk/lib/mashinit
+can be used to start
+.IR sboot .
+Alternatively, use the same commands as with
+.BR armsd .
+.SS "Loading sboot from Styxmon"
+From
+.IR styxmon (10.8),
+there are several ways to load
+.IR sboot .
+All of the following examples assume that
+.I styxmon
+has been mounted on
+.LR /n/rdbg .
+.PP
+If the
+.I sboot
+binary file resides on the host,  it  can  be
+simply  be  copied  to
+.LR /n/rdbg/boot
+to have it copied onto the board and started.
+.PP
+If
+.I sboot
+has already been loaded into the flash memory  or
+ROM  at  its  default  offset (0x8000 on the SWoRD board),
+then it can be executed with:
+.IP
+.EX
+echo E > /n/rdbg/ctl
+.EE
+.PP
+If
+.I sboot
+has been loaded into the flash memory or ROM at a
+different  address,  then  the  following  sequence can be
+used:
+.IP
+.EX
+echo E0x\fIoffset\fP >/n/rdbg/ctl
+.EE
+.PP
+Finally, if the system has been set  up  to  autoboot,  by
+setting the autoboot vector (described in the
+.B P
+command,
+below), then
+.I sboot
+will be run automatically upon  booting
+and will attempt to load the kernel automatically.
+.PP
+After  loading
+.I sboot
+via
+.IR styxmon (10.8),
+it will export the flash
+partitions  into  the  namespace,  with  names   such   as
+.BR /n/rdbg/flash0sboot .
+These  files  can  be copied to and
+from like ordinary files.  It will also export a temporary
+device,  called
+.LR /n/rdbg/tmp
+which is mirrored by the
+.B T!
+device discussed below.
+.SS "File and Device Names"
+.PP
+From the
+.I sboot
+shell prompt, most commands will take file-
+names  as  arguments.  Filenames can represent devices, or
+files in the more traditional sense, but in either case  a
+device  is  always  specified.   Most filenames are in the
+form
+.IB device ! unit ! file.
+Some devices have the simpler form
+.IB device ! file,
+or
+.IB device ! argument.
+This format is used to
+be consistent with the Inferno boot loaders
+on other platforms.
+.PP
+Supported devices are:
+.TP
+.BI m! address
+Memory.  The single argument tells the base address
+to start at, and defaults to 0 if omitted.
+.TP
+.BI Z \f1[\f0 ! number \f1]\f0
+Zero device.  The single  optional  argument  tells
+the  number  of zeros to supply, otherwise an
+infinite source  is  available.   This  is  useful  for
+clearing  areas  of  memory, disk blocks, partition
+tables, etc.
+.TP
+.BI D! debug_file
+The host debugger file system.  The unit  is  omitted,
+and  the  file  represents a file on the host
+machine.  These host files are accessed  internally via the
+.I bootparam
+interface
+(see
+.BR /os/sa1100/bootparam.h ).
+The
+.L D!
+device can
+only be used on Demon-based systems, and  will  not
+work  on  Styxmon-based  systems.   On systems with
+Styxmon, use the
+.L T!
+device  instead,  or  directly
+access the exported flash partitions.
+.TP
+.BI F! partition_name
+Flash memory.  The unit can be either the number or
+name of a partition,  where
+.L all
+is  the  entire
+flash, and
+.L partition
+is the partition table.
+.TP
+.B T!
+Temporary file.  This exists only for styxmon-based
+boards.  It will grow as needed, and can  be referred to
+as
+.B T!
+(from
+.I sboot
+commands), or when mounted as
+.BR /n/rdbg/tmp .
+.PP
+When accessed from
+.IR sboot ,
+shell commands, filenames may
+optionally  be followed  by an offset and/or a length, in the
+following format:
+.IP
+.IB filename @ "offset \f1[\f0,length\f1]\f0"
+.PP
+The
+.I length
+is relative to the starting
+.IR offset .
+If an offset
+and/or length is given and no device/filename is 
+specified, then the
+.B m
+memory  device  is  used  by  default.
+Examples can be found at the end of this document.
+.SS Commands
+.dl
+The following commands are available (listed in alphabetical order):
+.TP
+.B ?
+List  commands, showing for each command: the command character,
+the  minimum  and  maximum  number  of
+arguments,  and a short description.
+.TP
+.B > [v|d]
+Redirect output to video (v), or debugger (d).
+.TP
+.B < [k|d]
+Redirect input from keyboard (k), or debugger  (d).
+.TP
+.B =
+List all environment variables.
+Those with asterisks to the left of them are pseudo-variables  that
+have  special meaning, and aren't passed on to programs
+as part of the environment.
+.TP
+.IB variable = value
+Set a variable to the specified value, which can be
+either  a string or number depending upon the meaning
+of the variable.  Variables can be  substituted
+into  the command line using
+.LR $variable ,
+similar
+to many shell programs.
+.TP
+.B B
+Show BootParam information.
+.TP
+.BI b "\f1[\f0 file \f1]\f0" "\f1[\f0 args \f1]\f0 ..."
+Boot  from  the  specified file/device.  Boot arguments
+are optional.   The  file  to  boot  from  is
+optional,  and  if it is not specified, the command
+.B "b $bootfile $bootargs"
+will be substituted,  using the
+.B bootfile
+and
+.B bootargs
+environment variables.
+If the boot file is not specified, and the variable
+.B bootfile
+is not  set,  an error will be reported.
+The boot file can be compressed, using gzip format,
+and  will  be  automatically  uncompressed prior to
+execution.
+.TP
+.BI c "src dest"
+Copy a file from the source to the destination.   A
+dash
+.RB ( \- )
+can be specified to mean either standard
+input for the source, or standard  output  for  the
+destination.
+.TP
+.BI c/u "src dest"
+Copy  a compressed file from the source to the destination,
+uncompressing it before writing it.  This
+takes  a  file  that  was compressed using the gzip
+format.
+.TP
+.BI "D " addr " value"
+Deposit the given 32-bit  value  at  the  specified
+address.
+.TP
+.BI "d " "file val ..."
+Deposit  one  or more values into the given file or
+device, using 32-bit words.
+.TP
+.BI "E " addr
+Examine the 32-bit word at the specified address.
+.TP
+.BI "e " file
+Examine the specified  file,  using  both  hex  (in
+32-bit words) and ascii formats.
+.TP
+.B P
+List  partition  table.
+This  shows,  for  each  partition,  the  partition
+device number, the starting offset, the total size,
+permissions,  flags,  and  name.  It also shows the
+autoboot offset.  Note that if  flash memory
+exists,
+.B F!all
+exists, and represents the entire
+flash memory.  Also, if an area has been set  aside
+for   a  partition  table,  then
+.B F!partition
+represents that  area.   All  other  partitions  are
+reconfigurable.
+.TP
+.BI "P/a " number
+.RS
+Enable/disable  autoboot.  Given a partition device
+number, this will set autoboot to  occur  from  the
+specified partition.  This will also set the internal
+vector used for finding
+.I sboot
+in  debug  mode.
+Setting  this  to 0 will disable autoboot, but will
+not change the internal
+.I sboot
+vector.   Generally,
+the  partition  holding
+.I sboot
+should be used for
+autobooting.
+.PP
+WARNING:  setting  this  to  anything
+other  than  0  or the
+.I sboot
+partition may make the
+flash unusable, and might require using  an  EEPROM
+burner  to  reprogram  the flash.  Even setting the
+autoboot to load
+.I sboot
+could  be  dangerous.   The
+autoboot  sequence  should first be tested with the
+.B A
+command to make sure it  behaves  as  expected,
+and  also to make sure that some means of disabling
+it is accessible.
+.RE
+.TP
+.BI "P/d " number
+Delete the specified partition.
+.TP
+.BI P " number start size perm flags name"
+Create a partition.  The permissions are  specified
+in  octal as standard Inferno-style permissions
+(see
+.IR sys-stat (2)).
+Generally, the flags should be set to 0.
+.TP
+.B P/m
+Show a map of the entire flash, with  sectors, offsets,
+and  sizes,  and whether or not the sector is
+protected.  Sector protection  information  is  not
+available on all flash devices.
+.TP
+.BI "P/u " number
+Unprotect  the sectors for the specified partition.
+Changing sector protection is not available on  all
+flash devices.
+.TP
+.BI "P/p " number
+Protect  the  sectors  for the specified partition.
+Changing sector protection is not available on  all
+flash devices.
+.TP
+.BI "S " file
+Stat  a  file.  Get information about the requested
+file or device.
+.TP
+.BR T [ \fIrepeat\fP ]
+Show  title.   This will cycle through the standard
+title startup sequence.  Given a  non-zero  parameter,
+it will cycle indefinitely.
+.SS Autoboot
+.PP
+When the autoboot vector is set in the flash to
+run
+.I sboot automatically
+(using the
+.B P
+command),
+.I sboot
+will first
+cycle through the title sequence, and then try to
+boot from the file specified by the bootfile environment
+variable, as if the following  commands  had  been
+typed:
+.IP
+.EX
+T 0
+b $bootfile $bootargs
+.EE
+.PP
+The  sequence  to  disable autoboot varies, depending upon
+the customized autoboot code, but with the standard  autoboot
+sequence it is as follows:
+.PP
+When  the  title  screen starts to fade in, press and hold
+the
+.B Esc
+(escape) key.  Properly timed, this stops  the  standard  kernel
+boot, and the system instead displays
+a screen asking whether to go into maintenance mode.  From
+this screen, press control-D to disable autoboot. Control-E
+may be pressed to re-enable autoboot.  In this manner,  it  is
+possible to test autoboot first with the
+.B A
+command, then press
+.B Esc
+and control-E to enable autoboot, ensuring  that
+it  will  be  possible  to reach the screen to turn it off
+again later.
+.PP
+Autoboot can also be cleared by using an EEPROM programmer
+to rewrite the boot monitor to the flash.
+.PP
+From the
+.I sboot
+prompt, autoboot can be turned off with the
+command:
+.IP
+.EX
+P 0
+.EE
+.PP
+It should be noted, however, that the
+.I sboot
+prompt  cannot
+be easily reached once the machine is restarted with autoboot
+enabled.  In particular, the serial debugger  connection
+is no longer active.
+.SH EXAMPLES
+.PP
+All these examples are run from the
+.I sboot
+console:
+.PP
+To see the current partition table:
+.IP
+.EX
+P
+.EE
+.PP
+Before creating a default partition table,  existing
+information  first  must be cleared.  This can be
+done by copying from the  zero  device  to  the  partition
+table:
+.IP
+.EX
+c Z!200 F!partition
+.EE
+.PP
+Create a new partition table with some sample partitions (assuming a
+4MB flash):
+.IP
+.EX
+P 0 0 8000 644 0 demon
+P 1 8000 18000 644 0 sboot
+P 2 20000 80000 666 0 kern
+P 3 a0000 80000 666 0 kern2
+P 4 120000 280000 666 0 fs
+.EE
+.PP
+Boot a kernel  that  resides  in  the  host  filesystem
+(where
+.B armsd
+is running):
+.IP
+.EX
+b D!infernosword
+.EE
+.PP
+Boot a compressed kernel:
+.IP
+.EX
+b D!infernosword.gz
+.EE
+.PP
+Download a new kernel into flash, after first compressing
+the kernel with gzip:
+.IP
+.EX
+c D!infernosword.gz F!kern
+.EE
+.PP
+Download a compressed file system to the board,  uncompress
+it, and save it to a flash partition called
+.LR fs :
+.IP
+.EX
+c/u D!swordfs.gz F!fs
+.EE
+.PP
+Boot the kernel from flash:
+.IP
+.EX
+b F!kern
+.EE
+.PP
+To boot  a  kernel that needs to use the serial line for some
+other purpose (such as a PPP link),  and  to  be  able  to
+switch  the  line while the kernel is uncompressing, it is
+necessary to redirect the  output  to  the  screen  first,
+instead  of  the  default  debugger  console.  This can be
+accomplished with:
+.IP
+.EX
+> v
+b F!kern
+.EE
+.PP
+Examine memory, for instance 200 bytes at offset 4000:
+.IP
+.EX
+e @4000,200
+.EE
+.PP
+Alternatively, this format could be used to quickly  examine
+a single 32-bit word:
+.IP
+.EX
+E 4000
+.EE
+.PP
+Deposit three values in memory, for instance the values
+1, 2, and 3 at offset 0xa94 (in 32-bit words):
+.IP
+.EX
+d @a94 1 2 3
+.EE
+.PP
+Alternatively, to change a single value, this format could
+be used:
+.IP
+.EX
+D a94 1
+.EE
+.PP
+Enter new lines directly into the plan9.ini partition,
+first zero it out to be safe:
+.IP
+.EX
+c Z!1000 F!plan9.ini
+.EE
+.PP
+Copy from standard input to the partition
+.LR plan9.ini :
+.IP
+.EX
+c - F!plan9.ini
+.EE
+.PP
+After  entering  the  new lines, end the input with control-D.  When
+typing directly on the device, this only  has  to  be  typed  once.
+From
+.LR armsd ,
+control-D needs to be typed twice, and when using
+.L armsd
+from DOS/Windows, further followed by a carriage return.
+.PP
+Change the
+.L bootfile
+variable to
+.LR F!kern2 :
+.IP
+.EX
+bootfile=F!kern2
+.EE
+.PP
+Change the default radix to 10 (it defaults to 16):
+.IP
+.EX
+r=10
+.EE
+.SH SOURCE
+.B /os/boot/net
+.br
+.B /os/boot/port
+.br
+.B /os/boot/styxmon
+.br
+.B /os/boot/sa1100
+.SH FILES
+.B swordmon
+.br
+.B sboot
+.SH SEE ALSO
+.IR mdb (1),
+.IR inferno.ini (10.8)
+.IR styxmon (10.8)
+.SH BUGS
+It is slightly elaborate for a bootstrap.

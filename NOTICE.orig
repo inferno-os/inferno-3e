@@ -1,0 +1,50 @@
+This contains software from the Third Edition of Inferno, as of 4 June 2003.
+It is not the current version of Inferno, but is provided as an historical snapshot.
+It is not provided as usable software.
+It is not intended that it will run or even compile on current target systems.
+
+Inferno® Copyright © 1996-1999 Lucent Technologies Inc.  All rights reserved.
+Inferno revisions Copyright © 1999 Vita Nuova Limited.  All rights reserved.
+Inferno revisions and new material Copyright © 2000-2002 Vita Nuova Holdings Limited.  All rights reserved.
+
+Lucida® fonts Copyright © 1985 Bigelow & Holmes Inc.
+
+Inferno, Styx, Dis and Limbo are registered trademarks of Vita Nuova Holdings Limited in the USA and other countries.
+
+	--------
+The contents herein includes some software initially developed by
+Lucent Technologies Inc. and others, and is subject to the
+terms of the Lucent Technologies Inc. Plan 9 Open Source License Agreement.
+A copy of the Plan 9 open source Licence Agreement is
+available at http://plan9.bell-labs.com/plan9dist/license.html or
+by contacting Lucent Technologies at http://www.lucent.com.
+
+All software distributed under such Agreement is distributed on
+an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either
+express or implied.  See the Lucent Technologies Inc. Plan 9
+Open Source Licence Agreement for the specific language
+governing all rights, obligations and limitations under such
+Agreement.
+
+Portions of the software developed by Lucent Technologies and others are
+Copyright © 2000, 2001.  All rights reserved.
+
+Contributors: Vita Nuova Holdings Limited (June 2001).
+
+	*************
+
+The above notice with respect to Plan 9 refers mainly to:
+	ipaq:
+		 devaudio.c (which we intend to replace shortly)
+		some code in the PCMCIA support.
+		inflate
+
+	lib9:
+		the support for the Fmt* formatting interface
+	kern:
+		the support for the Fmt* formatting interface
+
+	/os/pc
+		the ether2114x device driver and pci support
+	-----------
+The etherwavelan.c driver used on ipaq was contributed to Plan 9 by nemo@gsyc.escet.urjc.es

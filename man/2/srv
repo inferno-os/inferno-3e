@@ -1,0 +1,88 @@
+.TH SRV 2
+.SH NAME
+srv, ipsrv \- network name and address translation
+.SH SYNOPSIS
+.EX
+include "srv.m"
+srv:= load Srv Srv->PATH;
+Srv: module
+{
+  PATH:  con "$Srv";
+  iph2a: fn(host: string): list of string;
+  ipa2h: fn(addr: string): list of string;
+  ipn2p: fn(protocol, service: string): string;
+};
+
+ipsrv := load Ipsrv Ipsrv->PATH;
+Ipsrv: module
+{
+  init:  fn(nil: list of string);
+  iph2a: fn(host: string): list of string;
+  ipa2h: fn(addr: string): list of string;
+  ipn2p: fn(protocol, service: string): string;
+};
+.EE
+.SH DESCRIPTION
+These modules provide name and address translation in hosted and native modes.
+.PP
+.B Srv
+is a module built in to
+.IR emu (1)
+that accesses the Internet name resolution services
+of a host operating system.
+.PP
+Given a host name,
+.B Iph2a
+returns a list of its Internet addresses (if any).
+Given an Internet address,
+.B ipa2h
+returns a list of host names (if any) that have that address.
+The results are only as accurate as the host system's name service.
+.PP
+.B Ipn2p
+returns the port number (as a string) for the given
+.I service
+when accessed using a particular protocol
+.I protocol
+(typically
+.B tcp
+or
+.BR udp ).
+.PP
+.B Ipsrv
+provides a superset of the
+.IR srv (2)
+interface for name and address translation.
+It can be used in both hosted and native modes.
+It has an additional
+.B init
+function that must be called before any of the other functions is used;
+its argument should be
+.BR nil .
+It uses the Internet Domain Name Service (DNS) for both host name lookup
+and reverse (address) lookup.
+The addresses of the DNS servers, which must be numeric IP addresses,
+and an (optional) local domain name
+are read from
+.BR /services/dns/db .
+It uses
+.IR services (6)
+to map protocol and service names to Internet port numbers.
+.SH SOURCE
+.B /appl/lib/ipsrv.b
+.SH SEE ALSO
+.IR sys-file2chan (2),
+.IR cs (8)
+.SH BUGS
+.B Srv
+should have an
+.B init
+function.
+On the other hand,
+.B Ipsrv
+should not take arguments to its
+.B init
+function.
+.br
+.B Ipsrv
+uses TCP/IP not UDP/IP to access the DNS.

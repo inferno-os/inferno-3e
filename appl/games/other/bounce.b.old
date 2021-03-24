@@ -1,0 +1,526 @@
+
+implement Bounce;
+
+# bouncing balls demo.  it uses tk and multiple processes to animate a
+# number of balls bouncing around the screen.  each ball has its own
+# process; CPU time is doled out fairly to each process by using
+# a central monitor loop.
+
+include "sys.m";
+	sys: Sys;
+include "draw.m";
+	draw: Draw;
+	Display, Point, Rect: import draw;
+include "tk.m";
+	tk: Tk;
+include "wmlib.m";
+	wmlib: Wmlib;
+include "math.m";
+	math: Math;
+include "rand.m";
+
+Bounce: module {
+	init: fn(ctxt: ref Draw->Context, argv: list of string);
+};
+
+BALLSIZE: con 5;
+ZERO: con 1e-6;
+π: con Math->Pi;
+
+Line: adt {
+	p, v:		Realpoint;
+	s:		real;
+	new:			fn(p1, p2: Point): ref Line;
+	hittest:		fn(l: self ref Line, p: Point): (Realpoint, real, real);
+	intersection:	fn(b: self ref Line, p, v: Realpoint): (int, Realpoint, real, real);
+	point:		fn(b: self ref Line, s: real): Point;
+};
+
+Realpoint: adt {
+	x, y: real;
+};
+
+gamecmds := array[] of {
+"canvas .c",
+"bind .c <ButtonRelease-1> {send cmd 0 %x %y}",
+"bind .c <ButtonRelease-2> {send cmd 0 %x %y}",
+"bind .c <Button-1> {send cmd 1 %x %y}",
+"bind .c <Button-2> {send cmd 2 %x %y}",
+"frame .f",
+"entry .f.e -width 100",
+"label .f.l -text {Number of balls:}",
+"bind .f.e <Key-\n> {send cmd k}",
+"pack .f.l .f.e -side left",
+"pack .f -fill x",
+"pack .c -fill both -expand 1",
+"update",
+};
+
+Ballstate: adt {
+	t0: int;
+	p, v: Realpoint;
+	speed: real;
+};
+
+randch: chan of int;
+lines: list of ref Obstacle;
+lineversion := 0;
+win: ref Tk->Toplevel;
+
+Obstacle: adt {
+	line: 		ref Line;
+	id: 		int;
+	isbat: 	int;
+	s1, s2: 	real;
+	olds1:		real;		# previous recorded position
+	ms:		int;		# timestamp at which it was recorded
+	new: 	fn(isbat: int, p1, p2: Point): ref Obstacle;
+	config: 	fn(b: self ref Obstacle);
+};
+
+CORNER: con 60;
+INSET: con 20;
+WIDTH: con 500;
+HEIGHT: con 500;
+
+bats: array of ref Obstacle;
+
+nomod(s: string)
+{
+	sys->fprint(sys->fildes(2), "bounce: cannot load %s: %r\n", s);
+	sys->raise("fail:bad module");
+}
+
+init(ctxt: ref Draw->Context, argv: list of string)
+{
+	sys = load Sys Sys->PATH;
+	draw = load Draw Draw->PATH;
+	math = load Math Math->PATH;
+	tk = load Tk Tk->PATH;
+	wmlib = load Wmlib Wmlib->PATH;
+	if (wmlib == nil)
+		nomod(Wmlib->PATH);
+	wmlib->init();
+	nballs := 1;
+	if (argv != nil && tl argv != nil)
+		nballs = int hd tl argv;
+	if (nballs < 0) {
+		sys->fprint(sys->fildes(2), "usage: bounce [nballs]\n");
+		sys->raise("fail:usage");
+	}
+	sys->pctl(Sys->NEWPGRP, nil);
+	wmctl: chan of string;
+	(win, wmctl) = wmlib->titlebar(ctxt.screen, nil, "Bounce", 0);
+	cmdch := chan of string;
+	tk->namechan(win, cmdch, "cmd");
+	for (i := 0; i < len gamecmds; i++)
+		cmd(win, gamecmds[i]);
+	cmd(win, ".c configure -width 500 -height 500");
+	cmd(win, ".c configure -width [.c cget -actwidth] -height [.c cget -actheight]");
+	cmd(win, ".f.e insert 0 " + string nballs);
+	cmd(win, ".f.e selection range 0 end");
+	cmd(win, "focus .f.e");
+
+	mch := chan of (int, Point);
+	randch = chan of int;
+	spawn randgenproc(randch);
+	csz := Point(int cmd(win, ".c cget -actwidth"), int cmd(win, ".c cget -actheight"));
+
+	decorate();
+
+	bats = array[4] of ref Obstacle;
+	bats[0] = makebat((INSET+CORNER, INSET), (WIDTH-INSET-CORNER, INSET));
+	bats[1] = makebat((WIDTH-INSET, INSET+CORNER),
+				(WIDTH-INSET, HEIGHT-INSET-CORNER));
+	bats[2] = makebat((WIDTH-INSET-CORNER, HEIGHT-INSET),
+				(INSET+CORNER, HEIGHT-INSET));
+	bats[3] = makebat((INSET, INSET+CORNER), (INSET, HEIGHT-INSET-CORNER));
+
+	spawn mouseproc(mch);
+	mkball := chan of chan of chan of ref Ballstate;
+	spawn monitor(mkball);
+	balls: list of chan of ref Ballstate;
+	now := sys->millisec();
+	for (i = 0; i < nballs; i++)
+		balls = makeball(mkball, csz) :: balls;
+
+	stopmsg := ref Ballstate;
+	stopmsg.p.x = -10000.0;
+	for (;;) alt {
+	c := <-wmctl =>
+		wmlib->titlectl(win, c);
+	c := <-cmdch =>
+		(nil, toks) := sys->tokenize(c, " ");
+		if (hd toks != "k") {
+			mch <-= (int hd toks, Point(int hd tl toks, int hd tl tl toks));
+			continue;
+		}
+		n := int cmd(win, ".f.e get");
+		if (n >= 0) {
+			dn := 1;
+			if (n < nballs) {
+				for (; nballs > n; nballs--) {
+					hd balls <-= stopmsg;
+					balls = tl balls;
+				}
+			} else {
+				for (; nballs < n; nballs++)
+					balls = makeball(mkball, csz) :: balls;
+			}
+			cmd(win, ".f.e delete 0 end");
+			cmd(win, ".f.e insert 0 " + string nballs);
+			cmd(win, ".f.e selection range 0 end");
+			cmd(win, "focus .f.e");
+		}
+	}
+}
+
+makebat(p1, p2: Point): ref Obstacle
+{
+	bat := Obstacle.new(1, p1, p2);
+	bat.s1 = bat.line.s / 2.0;
+	bat.s2 = bat.s1 + 100.0;
+	bat.config();
+	return bat;
+}
+
+decorate()
+{
+	addline((INSET, INSET+CORNER), (INSET, INSET));
+	addline((INSET, INSET), (INSET+CORNER, INSET));
+	addline((WIDTH-INSET-CORNER, INSET), (WIDTH-INSET, INSET));
+	addline((WIDTH-INSET, INSET), (WIDTH-INSET, INSET+CORNER));
+	addline((WIDTH-INSET, HEIGHT-INSET-CORNER), (WIDTH - INSET, HEIGHT-INSET));
+	addline((HEIGHT-INSET, WIDTH-INSET), (WIDTH-INSET-CORNER, HEIGHT-INSET));
+	addline((INSET+CORNER, HEIGHT-INSET), (INSET, HEIGHT-INSET));
+	addline((INSET, HEIGHT-INSET), (INSET, HEIGHT-INSET-CORNER));
+}
+
+makeball(mkball: chan of chan of chan of ref Ballstate, csz: Point): chan of ref Ballstate
+{
+	now := sys->millisec();
+	mkballreply := chan of chan of ref Ballstate;
+	mkball <-= mkballreply;
+	ballctl := <-mkballreply;
+	ballctl <-= ref Ballstate(now, 
+		(real WIDTH/2.3342, real HEIGHT / 2.11123),
+		makeunit(randpoint(csz)),
+		0.1 + real (<-randch % 40) / 100.0);
+	return ballctl;
+}
+
+addline(p1, p2: Point)
+{
+	Obstacle.new(0, p1, p2);
+}
+
+Obstacle.new(isbat: int, p1, p2: Point): ref Obstacle
+{
+	id := int cmd(win, ".c create line " + p2s(p1) + " " + p2s(p2) + " -width 3 -fill black");
+	o := ref Obstacle(Line.new(p1, p2), id, isbat, 0.0, 0.0, 0.0, 0);
+	lineversion++;
+	lines = o :: lines;
+	return o;
+}
+
+Obstacle.config(b: self ref Obstacle)
+{
+	cmd(win, ".c coords " + string b.id + " " +
+		p2s(b.line.point(b.s1)) + " " + p2s(b.line.point(b.s2)));
+}
+	
+randpoint(size: Point): Realpoint
+{
+	return (randreal(size.x), randreal(size.y));
+}
+
+# return randomish real number between 1 and x-1
+randreal(x: int): real
+{
+	return real (<-randch % ((x - 1) * 100)) / 100.0 + 1.0;
+}
+
+# make sure cpu time is handed to all ball processes fairly
+# by passing a "token" around to each process in turn.
+# each process does its work when it *hasn't* got its
+# token but it can't go through two iterations without
+# waiting its turn.
+#
+# new processes are created by sending on mkball.
+# the channel sent back can be used to control the position
+# and velocity of the ball and to destroy it.
+monitor(mkball: chan of chan of chan of ref Ballstate)
+{
+	(c, rc) := (chan of ref Ballstate, chan of int);
+	procl := proc := (c, rc) :: nil;
+	spawn nullproc(c, rc);	# always there to avoid deadlock when no balls.
+	c <-= nil;				# hand token to dummy proc
+	for (;;) {
+		alt {
+		ch := <-mkball =>
+			(newc, newrc) := (chan of ref Ballstate, chan of int);
+			procl = (newc, newrc) :: procl;
+			spawn animproc(newc, newrc);
+			ch <-= newc;
+		alive := <-rc =>					# got token.
+			if (!alive) {
+				# ball has exited: remove from list
+				newprocl: list of (chan of ref Ballstate, chan of int);
+				for (; procl != nil; procl = tl procl)
+					if ((hd procl).t1 != rc)
+						newprocl = hd procl :: newprocl;
+				procl = newprocl;
+			}
+			if ((proc = tl proc) == nil)
+				proc = procl;
+			(c, rc) = hd proc;
+			c <-= nil;				# hand token to next process.
+		}
+	}
+}
+
+nullproc(c: chan of ref Ballstate, rc: chan of int)
+{
+	for (;;) {
+		<-c;
+		rc <-= 1;
+	}
+}
+
+isterminate(s: ref Ballstate): int
+{
+	return s != nil && s.p.x < -1000.0;
+}
+
+# animate one ball. initial position and unit-velocity are
+# given by p and v.
+animproc(c: chan of ref Ballstate, rc: chan of int)
+{
+	while ((newstate := <-c) == nil)
+		rc <-= 1;
+	state := *newstate;
+	totaldist := 0.0;			# distance ball has travelled from reference point to last intersection
+
+	ballid := cmd(win, sys->sprint(".c create oval 0 0 1 1 -fill #%.6x", <-randch & 16rffffff));
+	hitobs: ref Obstacle;
+	smallcount := 0;
+	version := lineversion;
+loop:	for (;;) {
+		hitp: Realpoint;
+
+		dist := 1000000.0;
+		oldobs := hitobs;
+		hitt: real;
+		for (l := lines; l != nil; l = tl l) {
+			obs := hd l;
+			(ok, hp, hdist, t) := obs.line.intersection(state.p, state.v);
+			if (ok && hdist < dist && obs != oldobs && (smallcount < 10 || hdist > 1.5)) {
+				(hitp, hitobs, dist, hitt) = (hp, obs, hdist, t);
+			}
+		}
+		if (dist > 10000.0) {
+			sys->print("no intersection!\n");
+			cmd(win, ".c delete " + ballid + ";update");
+			while (!isterminate(<-c))
+				rc <-= 1;
+			<-c;
+			rc <-= 0;		# inform monitor that we've gone
+			exit;
+		}
+		if (dist < 0.0001)
+			smallcount++;
+		else
+			smallcount = 0;
+		bouncev := boing(state.v, hitobs.line);
+		et := int ((totaldist + dist) / state.speed) + state.t0;
+		t := 0;
+		t0 := sys->millisec();
+		dt := et - t0;
+		do {
+			s := real t * state.speed;
+			currp := Realpoint(state.p.x + s * state.v.x,  state.p.y + s * state.v.y);
+			bp := Point(int currp.x, int currp.y);
+			cmd(win, ".c coords " + ballid + " " +
+				string (bp.x-BALLSIZE)+" "+string (bp.y-BALLSIZE)+" "+
+				string (bp.x+BALLSIZE)+" "+string (bp.y+BALLSIZE));
+			cmd(win, "update");
+			if (lineversion > version) {
+				(state.p, hitobs, version) = (currp, oldobs, lineversion);
+				totaldist += s;
+				continue loop;
+			}
+			if ((newstate := <-c) != nil) {
+				if (isterminate(newstate)) {
+					cmd(win, ".c delete " + ballid + ";update");
+					<-c;
+					rc <-= 0;
+					exit;
+				}
+				state = *newstate;
+				totaldist = 0.0;
+				continue loop;
+			}
+			rc <-= 1;
+			t = sys->millisec() - t0;
+		} while (t < dt);
+		totaldist += dist;
+		state.p = hitp;
+		if (hitobs.isbat) {
+			if (hitt >= hitobs.s1 && hitt <= hitobs.s2) {
+				(ds, dt) := (hitobs.s1 - hitobs.olds1, sys->millisec() - hitobs.ms);
+				#if (dt > 0)
+				#	sys->print("bat velocity is %g\n", real ds / real dt);
+				# XXX modify bounce vector dependent on velocity...
+				state.v = bouncev;
+			}
+		} else
+			state.v = bouncev;
+	}
+}
+
+# thread-safe access to the Rand module
+randgenproc(ch: chan of int)
+{
+	rand := load Rand Rand->PATH;
+	for (;;)
+		ch <-= rand->rand(16r7fffffff);
+}
+
+abs(x: real): real
+{
+	if (x < 0.0)
+		return -x;
+	return x;
+}
+
+mouseproc(mch: chan of (int, Point))
+{
+	for (;;) {
+		hitbat: ref Obstacle = nil;
+		minperp, hitdist: real;
+		(down, p1) := <-mch;
+		for (i := 0; i < len bats; i++) {
+			b := bats[i];
+			(normal, perp, dist) := b.line.hittest(p1);
+			perp = abs(perp);
+			
+			if ((hitbat == nil || perp < minperp) && (dist >= b.s1 && dist <= b.s2))
+				(hitbat, minperp, hitdist) = (b, perp, dist);
+		}
+		if (hitbat == nil || minperp > 30.0) {
+			while ((<-mch).t0)
+				;
+			continue;
+		}
+		cvsorigin := Point(int cmd(win, ".c cget -actx"), int cmd(win, ".c cget -acty"));
+		offset := hitdist - hitbat.s1;
+		line := hitbat.line;
+		p2 := p1;
+		batlen := hitbat.s2 - hitbat.s1;
+		hitbat.olds1 = hitbat.s1;
+		do {
+			(down, p2) = <-mch;
+			(v, perp, dist) := line.hittest(p2);
+			dist -= offset;
+			if (dist < -0.5 || dist + batlen > line.s + 0.5) {
+				if (dist < 0.0) {
+					p2 = line.point(offset);
+					dist = 1.0;
+				} else {
+					p2 = line.point(line.s - batlen + offset);
+					dist = line.s - batlen;
+				}
+				p2.x -= int (v.x * perp);
+				p2.y -= int (v.y * perp);
+				win.image.display.cursorset(p2.add(cvsorigin));
+			}
+			ms := sys->millisec();
+			hitbat.olds1 = hitbat.s1;
+			hitbat.ms = ms;			# XXX if velocity get calculated here, it will be zero...
+			(hitbat.s1, hitbat.s2) = (dist, dist + batlen);
+			hitbat.config();
+			cmd(win, "update");
+		} while (down);
+	}
+}
+
+# make a vector of unit-length, parallel to v.
+makeunit(v: Realpoint): Realpoint
+{
+	mag := math->sqrt(v.x * v.x + v.y * v.y);
+	return (v.x / mag, v.y / mag);
+}
+
+# bounce ball travelling in direction av off line b.
+# return the new unit vector.
+boing(av: Realpoint, b: ref Line): Realpoint
+{
+	d := math->atan2(real b.v.y, real b.v.x) * 2.0 - math->atan2(av.y, av.x);
+	return (math->cos(d), math->sin(d));
+}
+
+Line.new(p1, p2: Point): ref Line
+{
+	ln := ref Line;
+	ln.p = (real p1.x, real p1.y);
+	v := Realpoint(real (p2.x - p1.x), real (p2.y - p1.y));
+	ln.s =  math->sqrt(v.x * v.x + v.y * v.y);
+	if (ln.s > ZERO)
+		ln.v = (v.x / ln.s, v.y / ln.s);
+	else
+		ln.v = (1.0, 0.0);
+	return ln;
+}
+
+# return normal from line, perpendicular distance from line and distance down line
+Line.hittest(l: self ref Line, ip: Point): (Realpoint, real, real)
+{
+	p := Realpoint(real ip.x, real ip.y);
+	v := Realpoint(-l.v.y, l.v.x);
+	(nil, nil, perp, ldist) := l.intersection(p, v);
+	return (v, perp, ldist);
+}
+
+Line.point(l: self ref Line, s: real): Point
+{
+	return (int (l.p.x + s * l.v.x), int (l.p.y + s * l.v.y));
+}
+
+# compute the intersection of lines a and b.
+# b is assumed to be fixed, and a is indefinitely long
+# but doesn't extend backwards from its starting point.
+# a is defined by the starting point p and the unit vector v.
+# return whether it hit, the point at which it hit if so,
+# the distance of the intersection point from p,
+# and the distance of the intersection point from b.p.
+Line.intersection(b: self ref Line, p, v: Realpoint): (int, Realpoint, real, real)
+{
+	det := b.v.x * v.y - v.x * b.v.y;
+	if (det > -ZERO && det < ZERO)
+		return (0, (0.0, 0.0), 0.0, 0.0);
+
+	y21 := b.p.y - p.y;
+	x21 := b.p.x - p.x;
+	s := (b.v.x * y21 - b.v.y * x21) / det;
+	t := (v.x * y21 - v.y * x21) / det;
+	if (s < 0.0)
+		return (0, (0.0, 0.0), s, t);
+	hit := t >= 0.0 && t <= b.s;
+	hp: Realpoint;
+	if (hit)
+		hp = (p.x+v.x*s, p.y+v.y*s);
+	return (hit, hp, s, t);
+}
+
+cmd(top: ref Tk->Toplevel, s: string): string
+{
+	e := tk->cmd(top, s);
+	if (e != nil && e[0] == '!')
+		sys->print("tk error %s on '%s'\n", e, s);
+	return e;
+}
+
+p2s(p: Point): string
+{
+	return string p.x + " " + string p.y;
+}

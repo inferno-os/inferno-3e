@@ -1,0 +1,99 @@
+<../../mkconfig
+
+DIRS=\
+	brutus\
+	diary\
+	drawmux\
+	ftree\
+	mailtool\
+	minitel\
+	sword\
+
+TARG=\
+	about.dis\
+	avi.dis\
+	bounce.dis\
+	brutus.dis\
+	c4.dis\
+	calendar.dis\
+	chat.dis\
+	coffee.dis\
+	colors.dis\
+	cprof.dis\
+	date.dis\
+	deb.dis\
+	debdata.dis\
+	debsrc.dis\
+	dir.dis\
+	edit.dis\
+	filename.dis\
+	getauthinfo.dis\
+	ipaqlogon.dis\
+	keyboard.dis\
+	license.dis\
+	logon.dis\
+	logwindow.dis\
+	man.dis\
+	mand.dis\
+	mash.dis\
+	memory.dis\
+	mpeg.dis\
+#	mprof.dis\
+	pen.dis\
+	polyhedra.dis\
+	prof.dis\
+	qt.dis\
+	readmail.dis\
+	reversi.dis\
+	rmtdir.dis\
+	rt.dis\
+	sendmail.dis\
+	sh.dis\
+	smenu.dis\
+	stopwatch.dis\
+	sweeper.dis\
+	task.dis\
+	telnet.dis\
+	tetris.dis\
+	unibrowse.dis\
+	view.dis\
+	vt.dis\
+	winctl.dis\
+	wish.dis\
+	wm.dis\
+	wmplay.dis\
+
+MODULES=\
+	wmdeb.m\
+
+SYSMODULES=\
+	bufio.m\
+	cci.m\
+	daytime.m\
+	debug.m\
+	draw.m\
+	filepat.m\
+	html.m\
+	keyring.m\
+	mpeg.m\
+	newns.m\
+	plumbmsg.m\
+	quicktime.m\
+	rand.m\
+	readdir.m\
+	riff.m\
+	security.m\
+	sh.m\
+	string.m\
+	sys.m\
+	tk.m\
+	url.m\
+	webget.m\
+	wmlib.m\
+	workdir.m\
+
+DISBIN=$ROOT/dis/wm
+
+<$ROOT/mkfiles/mkdis
+<$ROOT/mkfiles/mksubdirs
+

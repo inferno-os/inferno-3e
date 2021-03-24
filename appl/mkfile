@@ -1,0 +1,16 @@
+<../mkconfig
+
+DIRS=\
+	cmd\
+	lib\
+	math\
+	mpeg\
+	mux\
+	svc\
+	tiny\
+	wm\
+	charon\
+	acme\
+	games\
+
+<$ROOT/mkfiles/mksubdirs

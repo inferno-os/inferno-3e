@@ -1,0 +1,59 @@
+.TH MATH-MISC 1
+.SH NAME
+fit, mersenne, parts \- miscellaneous mathematical applications
+.SH SYNOPSIS
+.B math/fit
+[
+.BI -d deg
+]
+[
+.B -v
+]
+[
+.IR file
+]
+.br
+.B math/mersenne
+[
+.IR num
+]
+.br
+.B math/parts
+[
+.B -a
+]
+[
+.IR num ...
+]
+.SH DESCRIPTION
+A collection of simple mathematical utilities.
+.PP
+.TP
+.B math/fit
+Fits a polynomial of degree
+.I deg
+to a set of points (x, y) where x is the independent variable, y the dependent one.
+All x and y values should be seperated by white space
+and can be real or integer. The values are read from
+.IR file
+or standard input if none is given. The
+.B -v
+option prints a table of actual and expected y values.
+.TP
+.B math/mersenne
+Tests the primality of the Mersenne numbers ie numbers of the form 2^n-1.
+The argument
+.IR num
+is the power of 2 in the above.
+.TP
+.B math/parts
+Calculates the number of partitions of the given number(s). The
+.B -a
+option will print out a table of the number of partitions of all numbers up to  the
+given number(s).
+.SH SOURCE
+.B /appl/math/fit.b
+.br
+.B /appl/math/mersenne.b
+.br
+.B /appl/math/parts.b

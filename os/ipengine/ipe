@@ -1,0 +1,99 @@
+# Bright Star Engineering ipEngine-1
+dev
+	root
+	cons	archipe
+	env
+	mnt
+	pipe
+	prog
+	rtc
+	srv
+	ssl
+
+	ip	bootp ip ipaux iproute arp netlog ptclbsum iprouter plan9 nullmedium pktmedium
+	ether netif netaux ethermedium
+	uart
+#	flash
+
+#	ftl
+#	kfs		chk kcon console dat dentry fcall fs fswren iobuf kfs sub uid
+
+#	i2c	i2c
+	fpga
+
+ip
+	il
+	tcp
+	udp
+#	rudp
+#	igmp
+	ipifc
+	icmp
+	ipmux
+
+lib
+	interp
+	keyring
+	kern
+	crypt
+
+link
+	etherscc
+#	flashintel
+
+mod
+	sys
+	keyring
+
+port
+	alarm
+	alloc
+	auth
+	chan
+	dev
+	dial
+	dis
+	discall
+	env
+	exception
+	exportfs
+	inferno
+	latin1
+	pgrp
+	print
+	proc
+	qio
+	qlock
+	styx
+	sysfile
+	taslock
+	utils
+	xalloc
+
+code
+	int cflag = 0;
+	int consoleprint = 1;
+	int panicreset = 0;
+	int kernel_pool_pcnt = 10;
+	int main_pool_pcnt = 48;
+	int heap_pool_pcnt = 50;
+	int image_pool_pcnt = 0;
+	int novgascreen = 1;
+
+init
+	ipeinit
+
+root
+	/chan
+	/dev
+	/dis
+	/env
+	/n
+	/net
+	/nvfs /
+	/prog
+	/icons
+	/osinit.dis
+	/dis/lib/auth.dis
+	/dis/lib/ssl.dis
+	/n/local /

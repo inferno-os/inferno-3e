@@ -1,0 +1,23 @@
+TARGMODEL=	Plan9
+TARGSHTYPE=	rc
+CPUS=		386 sparc mips power
+
+O=		k
+OS=		v851ok0q2
+
+AR=		ar
+ARFLAGS=	vu
+
+AS=		ka
+ASFLAGS=
+
+CC=		kc
+CFLAGS=		-wFV -I$ROOT/Plan9/sparc/include -I$ROOT/include
+
+LD=		kl
+LDFLAGS=
+
+SYSLIBS=-lc
+
+YACC=		yacc
+YFLAGS=		-d

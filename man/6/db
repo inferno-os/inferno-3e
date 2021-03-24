@@ -1,0 +1,43 @@
+.TH DB 6
+.SH NAME
+db \- connection service database
+.SH SYNOPSIS
+.B /services/cs/db
+.SH DESCRIPTION
+The connection service database file is read by the connection server
+.IR cs (8) ,
+when it receives a request using a machine name of the form
+.BI $ service\f1.
+.PP
+The file consists of a two column list (separated by whitespace) of the form:
+.IP
+.BI $ service"	hostname"
+.PP
+If the
+.I hostname
+is a logical network name,
+the connection server subsequently
+converts it to a network address
+(eg, from domain name to Internet address)
+before replying to its client.
+.PP
+Blank lines and comments (lines beginning with
+.BR # )
+are ignored.
+.PP
+.I Cs
+takes care to update any name cache it maintains if it sees that the file has
+changed since it was last read (based on its modification time).
+.SH EXAMPLE
+.TF $FILESERVER
+.TP
+.B $SIGNER
+.B doppio
+.TP
+.B $FILESERVER
+.B dispensa
+.TP
+.B $MAILSERVER
+.B doppio
+.SH "SEE ALSO"
+.IR cs (8)

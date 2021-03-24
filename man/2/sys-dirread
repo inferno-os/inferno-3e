@@ -1,0 +1,50 @@
+.TH SYS-DIRREAD 2
+.SH NAME
+dirread \- read directory
+.SH SYNOPSIS
+.EX
+include "sys.m";
+sys := load Sys Sys->PATH;
+
+dirread:  fn(fd: ref FD, dir: array of Dir): int;
+.EE
+.SH DESCRIPTION
+.B Dirread
+reads the contents of the directory pointed to by the open file descriptor
+.IR fd ,
+filling in the array
+.I dir
+with one
+.B Dir
+structure for each element.
+These
+.B Dir
+structures are equivalent to the result of a
+.B stat
+call on each file in the directory.
+See
+.IR sys-stat (2)
+for a description of
+.B stat
+and
+.BR Dir .
+.PP
+A successful
+.B dirread
+returns the number of entries read,
+up to the length of array
+.IR dir ;
+the number returned may be less than the number requested.
+The file offset is advanced by the number of bytes actually read.
+A return of 0 indicates the end of the directory.
+.PP
+Seeks (see
+.IR sys-seek (2))
+are not allowed on directories.
+.PP
+.SH SEE ALSO
+.IR sys-intro (2),
+.IR sys-open (2),
+.IR sys-read (2),
+.IR sys-seek (2),
+.IR sys-stat (2)

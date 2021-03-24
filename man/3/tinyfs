@@ -1,0 +1,51 @@
+.TH TINYFS 3
+.SH NAME
+tinyfs \- file system for miniscule devices
+.SH SYNOPSIS
+.EX
+sys->bind("#F\fIfd\fP", "/nvfs", Sys->MAFTER|Sys->MCREATE);
+.EE
+.SH DESCRIPTION
+.I Tinyfs
+provides file system access to the contents of low-capacity devices,
+ranging from several hundred bytes (at least 144 bytes) to at most the order of a kilobyte.
+It is provided to support file system access to small non-volatile memories,
+as for instance are found in some real-time clock chips,
+where IDs, keys, PINs, certificates and the like might be stored by either client or server.
+.PP
+The file system has only one directory, its root, which can contain only files.
+Once created, a write can only append to a file; random updates are not allowed,
+although the file could be truncated and rewritten.
+.PP
+A tiny file system cannot be bound straightforwardly to a mount point by
+.IR bind (1).
+Instead
+.IR sys-bind (2)
+must be used, in an unusual way:
+the device specifier following the
+.B #F
+device name is an integer file descriptor
+.IR fd ,
+which must correspond to a file open for reading and writing
+(ie,
+.IR sys-open (2)
+mode
+.BR ORDWR ),
+on which the tiny file system will live.
+The device must allow seek and write.
+During the
+.IR attach ,
+the system scans the device, checking the file system structure
+by building a table of files, and checking a checksum stored
+in each block; inconsistent structure is reinitialised, and thus
+a previously unused device will emerge correctly formatted as an empty tiny file system.
+.SH FILES
+.TF /nvfs
+.TP
+.B /nvfs
+conventional mount point used by
+.IR init (8)
+.SH SOURCE
+.B /os/port/devtinyfs.c
+.SH BUGS
+``A pity the code isn't also tiny.''

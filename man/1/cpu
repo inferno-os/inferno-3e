@@ -1,0 +1,60 @@
+.TH CPU 1
+.SH NAME
+cpu \- execute a remote command
+.SH SYNOPSIS
+.B cpu
+[
+.B -C
+.I alg
+]
+.RI [ net\fB!\fP ] host
+[
+.I command
+[
+.IR arg ...
+]
+]
+.SH DESCRIPTION
+.B Cpu
+dials
+.I host
+(using network
+.B tcp
+if
+.I net
+is not given), exports the local namespace and executes the given
+.I command
+on that machine. The local namespace is visible to the
+command in
+.BR /n/client ;
+local device files are bound into the remote device directory.
+If
+.I command
+is not given, then
+.B /dis/sh
+is run.
+.PP
+The
+.B -C
+option sets the algorithm
+to be used following authentication for digesting or encryption, to
+.IR alg .
+See 
+.IR ssl (3)
+for the supported algorithms.
+The default is
+.BR none :
+.IR ssl (3)
+is not used after authentication.
+.SH SOURCE
+.B /appl/cmd/cpu.b
+.SH SEE ALSO
+.IR sys-dial (2),
+.IR keyring-auth (2),
+.IR security-auth (2)
+.SH BUGS
+Although the draw device files are visible
+to the remote command, the current implementation
+of Tk means that windowing applications cannot
+receive events when
+run remotely. This will be fixed in a future release.

@@ -1,0 +1,17 @@
+#
+#	architecture-dependent files for Solaris
+#
+
+TARGFILES=asm-Solaris-$OBJTYPE.$O\
+	devip.$O\
+	devfs-posix.$O\
+	ipif-posix.$O\
+	os-Solaris.$O\
+	win-x11a.$O\
+	devaudio.$O\
+	devaudio-Solaris.$O\
+	deveia-Solaris.$O\
+	srv.$O\
+	lock.$O\
+
+SYSLIBS=$EMULIBS

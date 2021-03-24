@@ -1,0 +1,67 @@
+.TH MEMFS 4
+.SH NAME
+memfs \- mount a heap based filesystem
+.SH SYNOPSIS
+.B memfs
+.RB [ \-rab ]
+.RI [ size ]
+.I mountpoint
+.SH DESCRIPTION
+.I Memfs
+mounts a newly created heap-based filesystem
+on the given
+.I mountpoint
+directory.
+.PP
+The filesystem is entirely maintained in memory, no external storage is used.
+Unless specified by
+.IR size,
+the maximum storage provided by the filesystem is 1 megabyte (1024*1024 bytes).
+File data is allocated in 512 byte blocks.
+If a maximum
+.I size
+is specified, the actual maximum is rounded down to the nearest
+whole number of blocks:
+.IP
+.EX
+actualsize := (size / 512) * 512;
+.EE
+.PP
+The root of the new filesystem is created with Read, Write and Execute permission for the
+user only (mode 8r700).  The owner is given by the value returned from
+.B /dev/user
+at the time of running the command.
+.PP
+.I Memfs
+has the following options:
+.TP
+.B \-r
+The default option.
+The old
+.I mountpoint
+directory becomes a union directory consisting of just the root of the new filesystem.
+.TP
+.B \-a
+Add the root of the new filesystem to the end of the union directory
+represented by the
+.I mountpoint
+directory.
+.TP
+.B \-b
+Add the root of the new filesystem to the beginning of the union directory
+represented by the
+.I mountpoint
+directory.
+.SH FILES
+.TF /dev/user
+.TP
+.B /dev/user
+read to name the owner of the filesystem
+.TP
+.B /dev/time
+used to set file creation and modify times
+.SH SOURCE
+.B /appl/cmd/memfs.b
+.SH SEE ALSO
+.IR memfs (2),
+.IR ramfile (4)

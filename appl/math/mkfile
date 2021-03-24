@@ -1,0 +1,31 @@
+<../../mkconfig
+
+TARG=\
+	ffts.dis\
+	fit.dis\
+	graph0.dis\
+	gr.dis\
+	hist0.dis\
+	linalg.dis\
+	linbench.dis\
+	mersenne.dis\
+	parts.dis\
+	pi.dis\
+	polyfill.dis\
+	sieve.dis\
+
+MODULES=
+
+SYSMODULES=\
+	math.m\
+	gr.m\
+	linalg.m\
+	draw.m\
+	sys.m\
+	tk.m\
+	wmlib.m\
+	bufio.m\
+
+DISBIN=$ROOT/dis/math
+
+<$ROOT/mkfiles/mkdis

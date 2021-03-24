@@ -1,0 +1,192 @@
+.TH AUDIO 3
+.SH NAME
+audio \- digital audio input and output
+.SH SYNOPSIS
+.B bind -a '#A' /dev
+.PP
+.B /dev/audio
+.br
+.B /dev/audioctl
+.SH DESCRIPTION
+The
+.I audio
+device serves a one-level directory containing two files,
+giving access to the host or native audio device in a platform-independent way.
+.PP
+.B Audio
+is the data file, which can be read or written to exchange data with the device. Audio
+data is a sequence of stereo samples, left sample first, each of which is a 16 bit little-endian
+two's complement integer.
+.PP
+.B Audioctl
+is the associated control file, which sets the characteristics of the device.
+Reads return lines of the form
+.TP
+.B "\fIsource\fP [in out] \fIvalue\fP"
+.TP
+.B "\fIsource\fP in \fIvalue\fP out \fIvalue\fP"
+.TP
+.B "\fIsource\fP [in out] left \fIvalue\fP right \fIvalue\fP"
+.TP
+.B "\fIsource\fP in left \fIvalue\fP right \fIvalue\fP out left \fIvalue\fP right \fIvalue\fP"
+The qualifiers 
+.B in
+, 
+.B out 
+and 
+.B left
+, 
+.B right 
+are omitted if they
+are not applicable or if the input/output and/or left/right values are
+the same.
+The 
+.I source 
+is one of 
+.B audio
+, 
+.B aux1
+, 
+.B aux2
+, 
+.B line
+, 
+.B mono
+, 
+.B mic
+, 
+.B rate
+, 
+.B chans 
+or 
+.B bits.
+If 
+.I source 
+is one of the ports 
+.B audio
+,
+.B aux1
+, 
+.B aux2
+, 
+.B line
+, 
+.B mono 
+or 
+.B mic, 
+.I value 
+represents
+the volume
+on a scale of 0 (quiet) to 100 (loud). The default volume is 50 for the 
+.B audio 
+port and 0 for the
+remainder. If the 
+.I source 
+is 
+.B rate
+, 
+.I value 
+represents the 
+rate at which the data was recorded in Hz. The default is 22050.
+If the 
+.I source 
+is 
+.B chans
+, 
+.I value
+is the number of channels of audio data - 2 (the default) for stereo, otherwise mono. If the 
+.I source 
+is 
+.B bits
+, 
+.I value 
+is one of 4, 8 or 16, the sample size in bits. 
+.TP
+.B [in out] enc \fIformat\fP
+Outputs the recording format on the input and/or output channels. 
+.I Format 
+is one of 
+.B ulaw
+, 
+.B alaw
+, 
+.B pcm
+, 
+.B pcm16 
+or 
+.B adpcm
+.TP
+.B loop \fIvalue\fP
+.I Value 
+is 0 or 1 to disable or enable loopback respectively.
+.PP
+Writes control the device with strings of a similar format as that for reads.
+.TP
+.B "\fIsource\fP [in out] \fIvalue\fP"
+.TP
+.B "\fIsource\fP in \fIvalue\fP out \fIvalue\fP"
+.TP
+.B "\fIsource\fP [in out] left \fIvalue\fP right \fIvalue\fP"
+.TP
+.B "\fIsource\fP in left \fIvalue\fP right \fIvalue\fP out left \fIvalue\fP right \fIvalue\fP"
+Set the corresponding value/volume for the particular 
+.I source. 
+The same conventions apply
+as in the read case above. The default value of 
+.I source 
+is 
+.B audio.
+.TP
+.B reset
+Set all attributes to their default value.
+.TP
+.B loop \fIvalue\fP
+Enable (1) or disable (0) loopback mode.
+.TP
+.B [in out] enc \fIformat\fP
+Set the recording format on the input and/or output channels to
+.I format. 
+.I Format 
+is one of 
+.B ulaw
+, 
+.B alaw
+, 
+.B pcm
+, 
+.B adpcm.
+.TP
+.B [left right] dev \fIinput\fP
+Set the input source of the left and/or right ADCs. 
+.I Input 
+is one of 
+.B mic
+, 
+.B line
+, 
+.B aux1
+, 
+.B loop.
+.SH SOURCE
+.B /emu/devaudio*.c
+.br
+.B /os/*/devaudio.c
+.br
+.B /os/*/devcs4231.c
+.SH SEE ALSO
+.IR auplay (1)
+.br
+.IR audio (6)
+.SH BUGS
+The device has not been implemented on every platform that could provide it,
+particularly hosted implementations.
+.br
+.B /os/port/devaudio.c
+(a driver for the SB16) implements an older interface of broadly similar form,
+but using
+.B volume
+not
+.BR audioctl ,
+and supports a subset of the commands described above.
+.br
+The device is exclusive-use and cannot mix streams from several clients.

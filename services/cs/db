@@ -1,0 +1,5 @@
+$SIGNER		your_authentication_server
+$FILESERVER	your_file_server
+$MAILSERVER	your_mail_server
+$PROXY		your_proxy_server
+$GAMES	your_game_server

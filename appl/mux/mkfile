@@ -1,0 +1,78 @@
+<../../mkconfig
+
+OBJ=\
+	audioctl.dis\
+	comics.dis\
+	connect4.dis\
+	email.dis\
+	fnn.dis\
+	gamed.dis\
+	games.dis\
+	movie.dis\
+	mux.dis\
+	news.dis\
+	othello.dis\
+	pizza.dis\
+	readlnw.dis\
+	readnews.dis\
+	rec-pb.dis\
+	register.dis\
+	rmux.dis\
+	rmuxslave.dis\
+	tv.dis\
+	tvlist.dis\
+	web.dis\
+
+all:V:	$OBJ
+
+MODULE=\
+	../../module/bufio.m\
+	../../module/devpointer.m\
+	../../module/draw.m\
+	../../module/html.m\
+	../../module/ir.m\
+	../../module/keyring.m\
+	../../module/mpeg.m\
+	../../module/prefab.m\
+	../../module/math.m\
+	../../module/security.m\
+	../../module/srv.m\
+	../../module/string.m\
+	../../module/sys.m\
+	../../module/url.m\
+	../../module/webget.m\
+
+OBJINST=${OBJ:%=../../dis/mux/%}
+OBJPKG=${OBJ:%=$PREFIX_PKG/dis/mux/%}
+
+$OBJ:	$MODULE
+
+install:V: $OBJ
+	rm -f $OBJINST
+	cp $OBJ ../../dis/mux
+
+nuke:V: uninstall
+
+uninstall:V:
+	rm -f $OBJINST
+
+package:V:	$OBJ\
+		$PREFIX_PKG/dis/mux
+	rm -f $OBJPKG
+	cp $OBJ $PREFIX_PKG/dis/mux
+
+%.install:V:	%.dis
+	rm -f ../../dis/mux/$stem.dis
+	cp $stem.dis ../../dis/mux
+
+clean:V:
+	rm -f *.dis *.sbl
+
+%.dis:	%.b
+	limbo -I../../module -gw $stem.b
+
+%.s:	%.b
+	limbo -I../../module -wG -S $stem.b
+
+$PREFIX_PKG/dis/mux:
+	$MKDIR $target

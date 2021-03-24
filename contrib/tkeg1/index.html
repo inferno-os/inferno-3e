@@ -1,0 +1,61 @@
+<HTML><HEAD>
+<TITLE>Inferno Contribution: tkeg1</TITLE>
+</HEAD><BODY>
+<H3>Inferno Contribution: tkeg1</H3>
+<h3> TK Examples </h3>
+
+These two programs from <a href="mailto:tad@vampira.csh.rit.edu">Tad Hunt</a> show how to create
+a scrollable entry widget and also how to display a list of windows.
+
+<h4>Scrollable Entry Widget</h4>
+
+
+Oftentimes, you may want an entry widget that is a certain number of
+characters wide, and you want to allow an arbitrary length input into
+it.  There is a problem: There is no way to scroll back and forth to
+see the text that has scrolled out of view.
+<p>
+The attached Limbo program, "EScroll" is an example of how to
+implement scrollable entry widgets.
+<p>
+
+Compile it with "limbo -gw escroll.b".
+<p>
+
+When you run it, it will open a new window containing nothing except
+the titlebar and an entry widget.  Enter enough text in the window to
+cause it to scroll.
+<p>
+
+Holding the left mouse button down while moving left or right will
+cause the entry widget to scroll so the text to the left or right,
+respectively will become visible.
+
+<h4>Window List</h4>
+
+
+The attached limbo program uses the Tk builtin module to get a list of
+all of the current windows, which it traverses and prints out
+<p>
+        window-id: (minx, miny) (maxx, maxy)
+<p>
+for each window.  This is useful to come up with '-x %x -y %y' command
+line options to place the windows popped up from the start menu where
+you like them.  It is trivial to extend it to output width and height
+for each window as well.
+<p>
+It will report 'nil image' for any windows that are hidden in the task
+bar.
+
+<HR>
+The following files are available for downloading:<TABLE BORDER="0">
+<TR>
+<TD><a href="escroll.b">escroll.b</a></TD>
+<TD>(1236 bytes)</TD>
+</TR>
+<TR>
+<TD><a href="windows.b">windows.b</a></TD>
+<TD>(672 bytes)</TD>
+</TR>
+</TABLE>
+</BODY></HTML>

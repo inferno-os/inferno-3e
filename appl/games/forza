@@ -1,0 +1,12 @@
+#!/dis/sh
+
+# for forza only...
+and	(
+	{unmount /net}
+	{bind '#I' /net}
+	{bind -a '#l1' /net}
+	{x=`{cat /net/ipifc/clone}}
+	{echo bind ether ether1 > /net/ipifc/$x/ctl}
+	{echo connect 62.254.170.100 255.0.0.0 > /net/ipifc/$x/ctl}
+	{srv}
+)

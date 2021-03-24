@@ -1,0 +1,23 @@
+.TH OS 1E
+.SH NAME
+os \- interface to host OS commands (hosted Inferno only)
+.SH SYNOPSIS
+.B bind -a '#C' /
+.br
+.B os
+.I cmd ...
+.SH DESCRIPTION
+.I Os
+allows commands to be issued to the underlying operating system, on hosted implementations of Inferno.
+The standard output and standard error of the command are merged on the standard output.
+The command device
+.RB ( #C )
+must previously have been bound as shown above.
+.SH FILES
+.B /cmd/clone
+.SH SOURCE
+.B /appl/cmd/os.b
+.SH "SEE ALSO"
+.IR cpu (1),
+.IR rcmd (1),
+.IR cmd (3)

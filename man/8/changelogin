@@ -1,0 +1,52 @@
+.TH CHANGELOGIN 8
+.SH NAME
+changelogin \- create/update the password file
+.SH SYNOPSIS
+.BI changelogin " name"
+.SH DESCRIPTION
+.I Changelogin
+helps to administer a password file
+.BR /keydb/password ,
+a requirement of `signer' servers
+(see
+.IR signer (8)).
+If a password file entry for
+.I name
+exists, it is modified; otherwise, a new entry is created.
+.PP
+The user is prompted for the following items:
+.TP
+password
+A string at least 7 characters in length. The SHA digest of the entered string is stored in the password file. See
+.IR keyring-sha (2).
+By default, the password for an existing entry is unchanged.
+.TP
+expiration date
+An expiration time in the format
+.IR DDMMYYYY .
+The user input is checked for valid day, month, and year; moreover, the new date must be later than the current time.
+By default, the current value, if any, is unchanged for an existing entry and one year from the current time for a new entry.
+.TP
+free form info
+Arbitrary administrative information.
+.PP
+The length of each value is subject to the size limitations defined by the
+.B Password
+module; see
+.IR security-password (2).
+.PP
+Note that the
+password expiration date is also used as the default expiration date
+for any certificate later produced;
+see
+.IR getauthinfo (8).
+.SH FILES
+.TF /keydb/password
+.TP
+.B /keydb/password
+where password entries are stored
+.SH SOURCE
+.B /appl/cmd/changelogin.b
+.SH "SEE ALSO"
+.IR security-password (2),
+.IR logind (8)

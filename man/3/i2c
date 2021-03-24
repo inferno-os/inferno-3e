@@ -1,0 +1,65 @@
+.TH I2C 3 MPC8xx
+.SH NAME
+i2c \- basic I2C interface
+.SH SYNOPSIS
+.B bind -a
+.BI #J[ n ]
+.B /dev
+.br
+.nf
+.BI /dev/i2c n ctl
+.BI /dev/i2c n data
+.fi
+.SH DESCRIPTION
+.PP
+The I2C driver
+serves a one-level directory with two files
+that give access to the target with address
+.I n
+on the system's I2C bus.
+.I N
+is usually determined by the I2C device manufacturer, and
+must be an even number from 0 to 254.
+I2C gives address 0 special meaning as the `general call' address.
+See an I2C specification for details.
+.PP
+The control file
+.BI i2c n ctl
+accepts commands to set the valid address range and
+subaddressing mode for the corresponding data file.
+The following control messages can be written to it:
+.TP
+.BI size " nbytes"
+.br
+Set the logical size of the target device to
+.I nbytes
+(default: 256).
+IO requests will be kept within this limit.
+This value is also returned by
+.B Sys->stat
+as the length of the data file.
+.TP
+.BI subaddress
+.br
+Cause subsequent reads and writes
+on the data file to use I2C subaddressing.
+The target device must support it.
+By default, the device is not subaddressed.
+.PP
+The data file
+.BI i2c n data
+exchanges data with the slave device with address
+.I n .
+Each write request transmits the given data
+to the device.
+Each read request sends a receive
+request to the device and returns the resulting data.
+If the I2C target is subaddressed, the current file offset
+gives the subaddress (ranging from 0 to 255);
+otherwise the file offset must be zero.
+Read and write requests are trimmed to the
+size of the device.
+.SH SOURCE
+.B /os/mpc/devi2c.c
+.br
+.B /os/mpc/i2c.c

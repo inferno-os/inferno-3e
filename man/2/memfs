@@ -1,0 +1,71 @@
+.TH MEMFS 2
+.SH NAME
+memfs \- heap based filesystem
+.SH SYNOPSIS
+.EX
+include "sys.m";
+include "memfs.m";
+memfs := load MemFS MemFS->PATH;
+
+init:    fn(): string;
+newfs:   fn(maxsz: int): ref Sys->FD;
+.EE
+.SH DESCRIPTION
+The
+.B MemFS
+module implements a Styx file server
+where all files and filesystem data structures are stored
+in the local heap, not on disk.
+.PP
+.TP
+.B init()
+The
+.B init
+function should be called once to initialise the internal state of
+.BR MemFS .
+Failure to initialise is reported by the returned string.
+A return value of
+.B nil
+indicates success.
+.TP
+.BI newfs( maxsz )
+The
+.B newfs
+function takes a single argument,
+.B maxsz
+defining the maximum number of bytes of the new filesystem.
+The return value is a file descriptor, serving
+.BR Styx ,
+suitable for passing to
+.I mount
+(see
+.IR sys-bind (2)).
+.PP
+Multiple filesystems of different sizes can be supported by a single instance of the module.
+Each filesystem is constrained by
+.BR maxsz ,
+any filesystem operations that cause the limit to be exceeded are failed with
+the error message:
+.IP
+.L filesystem full
+.PP
+File data is allocated in 512 byte blocks.  The actual filesystem data limit is always
+a multiple of this block size:
+.IP
+.EX
+actualmaxsz := (maxsz / 512) * 512;
+.EE
+.SH SOURCE
+.B /appl/lib/memfs.b
+.SH CAVEATS
+Only file data blocks are considered in the determination of heap usage, the overhead
+of internal data structures cannot be accounted for.
+.B MemFS
+could store its own data structures in data blocks, but this would impede performance.
+.PP
+Newly created and empty files are pre-allocated a data block in an attempt to prevent directory entries
+from using heap without regard to the requested
+.IR maxsz .
+.SH SEE ALSO
+.IR styxlib (2),
+.IR memfs (4)

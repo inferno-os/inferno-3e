@@ -1,0 +1,187 @@
+
+---	 	What is the current state of development of infernospaces?
+
+We are not planning to pick up the development of Infernospaces.
+We wish to promote the use of the Styx protocol on a wide range of devices
+but using Inferno as the medium (on bigger network devices), or a tiny
+Styx library on tiny devices (as for instance in our demonstration of
+a Lego RCX brick *serving* Styx to an Inferno network).
+
+---		What happened to the Inferno book being written by Rob Pike and Howard Trickey?
+
+It's with Vita Nuova - we're working on it.
+
+---		Does Vita Nuova open source the native Inferno code and its build tools/env?
+
+It was intended to be clear from our web site (www.vitanuova.com), but now
+that I look at it, it is a little ambiguous.  (``Royalty free binary distribution'' is
+an example -- we meant that the licence ALLOWS you to do that, not that it is all you get!)
+We had similar trouble refining various phrases on the box, trying to avoid them
+being misconstrued.
+
+ALL the Inferno source -- applications, emu, native and build --
+is available under our subscription scheme,
+at what we  think is modest cost --
+$150 for academics and $300 for individuals,
+and that includes a two volume set of documentation
+and the CD with all the source.
+
+The source is `open', in the sense that once you buy a copy you
+get the lot, and can do a lot legally with it,
+but because it's not zero-cost, we restrict circulation of
+some of the source (what the licence calls ``CORE SOFTWARE'')
+to the current subscriber group.  They can circulate it amongst themselves
+without reference to us.  Subscribers that make modifications can keep
+those to themselves, or even sell them, although we encourage people to share.
+
+The compiler suites are not part of the CORE SOFTWARE, nor is the Limbo
+source, are therefore not restricted to circulation amongst
+subscribers only, and we'll be making both available shortly for FTP from a Vita site.
+
+---		Exactly which OSes does Inferno support?
+
+Hosted Inferno has been tested on the following OSes.  UNIX variants show the uname -a output:
+
+Windows Nt	Windows NT4.0 SP4
+Windows '95	-
+Windows '98	-
+Windows Me	-
+Windows 2k/client
+Windows 2k/server
+Linux		Linux vespa.hci-net 2.2.9-19mdk #1 Wed May 19 19:53:00 GMT 1999 i586 unknown (pgcc-2.91.66)
+Solaris		SunOS pazzo 5.6 Generic_105181-03 sun4u sparc SUNW,Ultra-5_10 (gcc 2.95)
+FreeBSD 4.x	FreeBSD outside.hci-net 4.0-RELEASE FreeBSD 4.0-RELEASE #0: Thu Feb 15 12:42:11 GMT 2001     root@outside.hci-net:/usr/src/sys/compile/OUTSIDE  i386 (gcc 2.95.2)
+IRIX 5.3	IRIX invece 5.3 11091812 IP22 mips
+Plan9/x86	Third Edition, updates to 26 May 2001
+
+Inferno source code is included for ports to the following but has not been tested on them:
+	Unixware v 2.3
+	HP/UX
+
+---		How do I port hosted Inferno to an OS for which there are no binaries provided?
+
+you have to build mk first. there's a shell script to do it.
+see $ROOT/utils/makemk.sh, and make appropriate changes
+to a copy of it.  for a completely new platform, you'll need a host OS directory
+under $ROOT.  please get one from support@vitanuova.com.
+
+
+---		 How do the kernel configuration files work?
+
+They aren't documented yet, but essentially they have several sections:
+
+	dev	[device drivers]
+		if name XYZ appears then devXYZ.$O is linked,
+		and if any other names appear on the same line, then
+		the corresponding object files are included in the build
+		-- files can be linked in from ../ip as well -- see the line
+			ip bootp ip aux ...
+		that configures the core IP code into the kernel
+
+	ip	[IP protocol and media drivers]
+		if name XYZ appears then XYZ.$O is linked with source taken from  ../ip/XYZ.c
+	
+	lib	[libraries needed to link]
+		they are taken from $ROOT/Inferno/$OBJTYPE/lib,
+		with library XYZ typically compiled from the contents of directory $ROOT/XYZ
+
+	ether [ethernet drivers]
+		a selection of drivers accessible to devether.c, usually selected
+		by plan9.ini on the pc or some other configuration scheme on other platforms
+
+	vga	[VGA drivers]
+		similar to ether, but for VGA drivers on the PC; not usually used on other platforms
+
+	misc	[miscellaneous]
+		other files to link
+
+	mod	[Limbo built-in modules]
+		if XYZ appears, include Limbo built-in module $XYZ in the kernel,
+		with source in $ROOT/interp/XYZ.c (and related .h files)
+
+	init	[Limbo code to initialise platform]
+		if XYZ appears, then ../init/XYZ.b will be compiled to ../init/XYZ.dis
+		and will be used as #/./osinit.dis in the built-in root file system
+
+	code	[bits of C declarations]
+		C initialisations and function definitions that are copied into the config file
+		that's compiled and linked with the kernel.  they usually set parameters.
+
+	port	[portable files]
+		list of code from ../port to link into the kernel.  it's fairly invariant across platforms.
+
+	root	[files for built-in root file system]
+		the syntax is
+			<built-in-name> 	[<optional name of file with the contents for that name>]
+		eg
+			/dis/echo.dis
+			/n	/
+		where the contents will be taken from the given file (eg, $ROOT/dis/echo.dis in this case)
+		and if either $ROOT/filename or the optional content name names a directory,
+		the built-in name will also be a directory.
+
+---		 What hardware does Inferno support?
+
+Native Inferno runs on x86, ARM/Strongarm, PowerPC MPC8xx, Sparc (Javastation-1!).
+There is cross-compiler support for an even larger range of processors, including MIPS
+and 680x0, to allow/encourage other native ports.
+
+---		 What is on the source CD?
+
+  entire uncompressed file tree
+  wrap scripts to install it
+  all source for entire system, including
+	virtual machine
+	limbo modules and applications
+	hosted environment
+	native kernels
+	cross-compilers for the native kernels
+	build utilities (mk, rc, ....)
+	
+
+---		 What is on the binary-only CD
+
+- All Limbo source except the source for the Limbo compiler.
+- Native binaries for emu (the hosted mode environment), mk and limbo.
+- Sources for the native mode cross-compilers and other utilities.
+
+The source for the native operating system is not included.
+
+---		 Is Limbo object-oriented?
+
+It features concurrency and dynamic modularity instead.
+We are considering adding type-safe dynamic types and parametric polymorphism
+(orthogonally) but even the design is currently sketchy, not least because
+there is plenty that can be done without them!
+
+---		 Why do windows sometimes refuse to disappear
+
+If not caused by a broken application that still retains
+a handle on it, this should happen much less in the June 2001 release, because the Limbo
+compiler has changed to nil out temporary values and variables
+declared in nested scopes, so that a common cause of this happening
+has been removed.
+
+---		 What does "thread exited" mean?
+
+It means that ps has caught a thread (process) after 
+
+---		Does Inferno support 24-bit colour?
+
+Applications can currently use at most 8-bit graphics, but we intend to
+change it (to match the Plan 9 model).  The June 2001 release. on Linux, FreeBSD,
+and Solaris, should be able to run on 16-bit and higher X11 graphics
+subsystems, however, unlike the earlier ones.
+
+---		How do I read a file with a name longer than 28 characters?
+
+Styx currently limits names to 28 characters.
+
+---		I've exported my display device, but the Tk windows ignore mouse clicks. What am I doing wrong?
+
+Nothing. The current tk input scheme is local only.  This should change in the next release.
+It requires a moderate number of changes to fix.
+
+---		I want to change the appearance of the window manager. How?
+
+The code that controls it is found in /tk, /appl/wm/wm.b and /appl/wm/wmlib.b

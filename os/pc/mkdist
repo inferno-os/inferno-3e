@@ -1,0 +1,17 @@
+KFSFILES="chk dat fcall fswren kcon sub console dentry fs iobuf kfs uid"
+IPFILES="bootp compress devip gre icmp il ip ipaux ipextproto media netlog pktifc ppp tcp udp"
+O=8
+
+liblist=""
+for f in $IPFILES $KFSFILES
+do
+	if test -f ${f}.${O}
+	then
+		liblist="${liblist} ${f}.${O}"
+	fi
+done
+echo "Creating Library file Dist.a"
+iar Dist.a ${liblist}
+	
+
+

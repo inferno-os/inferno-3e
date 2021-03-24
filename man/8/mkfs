@@ -1,0 +1,196 @@
+.TH MKFS 8
+.SH NAME
+mkfs, mkext \- archive or update a file system
+.SH SYNOPSIS
+.B disk/mkfs
+.RB [ -aprv ]
+.RB [ -n
+.IR name ]
+.RB [ -s
+.IR source ]
+.RB [ -u
+.IR users ]
+.RB [ -z
+.IR n ]
+.I proto ...
+.PP
+.B disk/mkext
+.RB [ -d
+.IR name ]
+.RB [ -u ]
+.RB [ -h ]
+.RB [ -v ]
+.I file ...
+.SH DESCRIPTION
+.I Mkfs
+copies files from the file tree
+.I source
+(default
+.BR / )
+to a
+.B kfs
+file system (see
+.IR kfs (3)).
+The kfs service is mounted on
+.BR /n/kfs ,
+and
+.BR /adm/users ,
+if it exists, is copied to
+.BR /n/kfs/adm/users .
+The
+.I proto
+files are read,
+and any files specified in them that are out of date are copied to
+.BR /n/kfs .
+.PP
+Each line of the
+.I proto
+file specifies a file to copy.
+Indentation is significant,
+with each level of indentation corresponding to a level in the file tree.
+Fields within a line are separated by white space.
+The first field is the last path element in the destination file tree.
+The second field specifies the permissions.
+The third field is the owner of the file,
+and the fourth is the group owning the file.
+The fifth field is the name of the file from which to copy;
+this file is read from the current name space,
+not the source file tree.
+All fields except the first are optional.
+.PP
+Names beginning with a
+.L $
+are expanded as environment variables.
+If the first file specified in a directory is
+.LR * ,
+all of the files in that directory are copied.
+If the first file is
+.LR + ,
+all of the files are copied, and all subdirectories
+are recursively copied.
+.PP
+.I Mkfs
+copies only those files that are out of date.
+Such a file is first copied into a temporary
+file in the appropriate destination directory
+and then moved to the destination file.
+Files in the
+.I kfs
+file system that are not specified in the
+.I proto
+file
+are not updated and not removed.
+.PP
+The options to
+.I mkfs
+are:
+.TF "s source"
+.TP
+.B a
+Instead of writing to a
+.B kfs
+file system, write an archive file to standard output, suitable for
+.IR mkext .
+All files in
+.IR proto ,
+not just those out of date, are archived.
+.TP
+.BI "n " name
+Use
+.RI kfs. name
+as the name of the kfs service (default
+.BR kfs ).
+.TP
+.B p
+Update the permissions of a file even if it is up to date.
+.TP
+.B r
+Copy all files.
+.TP
+.BI "s " source
+Copy from files rooted at the tree
+.IR source .
+.TP
+.BI "u " users
+Copy file
+.I users
+into
+.B /adm/users
+in the new system.
+.TP
+.B v
+Print the names of all of the files as they are copied.
+.TP
+.BI "z " n
+Copy files assuming kfs block
+.I n
+(default 1024)
+bytes long.
+If a block contains only 0-valued bytes, it is not copied.
+.PD
+.PP
+.I Mkext
+unpacks archive files made by the
+.B -a
+option of
+.IR mkfs .
+The
+.B -d
+option specifies a directory (default
+.BR /n/kfs )
+to serve as the root of the unpacked file system.
+The
+.B -u
+option, to be used only when initializing a new
+.IR kfs (3)
+file system, sets the owners of the files created to correspond to
+those in the archive and restores the modification times of the files.
+(This is only permitted at the initial load of the files into a file
+system.)
+Each file on the command line is unpacked in one pass through the archive.
+If the file is a directory,
+all files and subdirectories of that directory are also unpacked.
+When a file is unpacked, the entire path is created if it
+does not exist.
+If no files are specified, the entire archive is unpacked;
+in this case, missing intermediate directories are not created.
+The
+.B -v
+option prints the names and sizes of files as they are extracted;
+.B -h
+prints headers for the files on standard output
+instead of unpacking the files.
+.SH EXAMPLES
+.PP
+Make an archive to establish a new file system
+(assuming that the output file
+.B arch
+is not referenced by
+.BR proto ):
+.IP
+.EX
+bind '#U' /n/local
+disk/mkfs -a -u files/adm.users -s /n/local proto > arch
+.EE
+.PP
+Unpack that archive on another machine:
+.IP
+.EX
+mount tcp!server /n/remote
+disk/mkext -u -d /n/remote < arch
+.EE
+.SH FILES
+.TF /lib/proto/portproto
+.TP
+.B /lib/proto
+directory of prototype files.
+.TP
+.B /lib/proto/portproto
+generic prototype file.
+.SH SOURCE
+.B /appl/cmd/disk/mkfs.b
+.br
+.B /appl/cmd/disk/mkext.b
+.SH "SEE ALSO"
+.IR kfs (3),
+.IR kfscmd (8)

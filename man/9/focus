@@ -1,0 +1,9 @@
+.TH FOCUS 9
+.SH NAME
+focus \- Direct keyboard focus to a widget.
+.SH SYNOPSIS
+\f5focus \fIwindow\fP
+.SH DESCRIPTION
+.B Focus
+moves the keyboard focus to the given
+.IR window .

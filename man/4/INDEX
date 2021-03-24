@@ -1,0 +1,16 @@
+intro 0intro
+acme acme
+archfs archfs
+dbfs dbfs
+rawdbfs dbfs
+9660srv dossrv
+dossrv dossrv
+9export export
+export export
+ftpfs ftpfs
+gamesrv gamesrv
+lockfs lockfs
+logfile logfile
+memfs memfs
+namespace namespace
+ramfile ramfile

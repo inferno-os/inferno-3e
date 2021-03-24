@@ -1,0 +1,158 @@
+.TH KFSCMD 8
+.SH NAME
+kfscmd, kfswiz \- kfs administration
+.SH SYNOPSIS
+.B disk/kfscmd
+.RB [ -n
+.IR name ]
+.IR cmd " ..."
+.PP
+.B disk/kfswiz
+.SH DESCRIPTION
+.I Kfscmd
+issues commands to the
+.IR kfs (3)
+device.
+The
+.B -n
+option names the file system to which the
+.I cmd
+applies
+(the
+.B main
+file system by default).
+.PP
+The known commands are described below.
+Note that some commands are multiple words and
+should be quoted to appear as a single argument to
+.IR sh (1).
+.TP \w'\fLallowoff\ \fIn'u
+.B allow
+Turn permission checking off (to simplify administration).
+.TP
+.B disallow
+Turn permission checking on.
+.TP
+.B halt
+write all changed blocks and stop the file system.
+.TP
+.B help
+print the list of commands.
+.TP
+.BI cfs \f1[\f0name\f1]\f0
+Apply subsequent commands to file system
+.IR name ;
+the
+.B main
+file system by default.
+.TP
+.BI "rename " "file name"
+Change the name of
+.I file
+to
+.IR name .
+.TP
+.BI "newuser " user
+Add
+.I user
+to
+.B /adm/users
+and make the standard directories needed for booting.
+.TP
+.BI "remove " file
+Remove
+.I file
+and place its blocks on the free list.
+.TP
+.BI "clri " file
+Remove 
+.I file
+but do not place the blocks on the free list.
+This command can be used to remove files that have duplicated blocks.
+The non-duplicate blocks can be retrieved by checking the file system
+with option
+.B f
+(see below).
+.TP
+.BI create \ file\ owner\ group\ mode\  [adl]
+Create the file.  Owner and group are users in
+.B /adm/users
+and mode is an octal number.
+If present,
+.L a
+creates an append only file,
+.L d
+creates a directory, and
+.L l
+creates a file that is exclusive-use.
+.TP
+.B sync
+write to disk all of the dirty blocks in the memory cache.
+.TP
+.B user
+Re-initialize authentication information by reading
+.BR /adm/users .
+.TP
+.B check [PRdfprtw]
+Check the file system.
+The options are
+.PD 0
+.RS
+.TP
+.B p
+print the names of directories as they are checked.
+.TP
+.B P
+print the names of all files as they are checked.
+.TP
+.B r
+read all of the data blocks and check the tags.
+.TP
+.B f
+rebuild the list of free blocks.
+.TP
+.B d
+delete redundant references to a block.
+.TP
+.B t
+fix bad tags.
+.TP
+.B c
+fix bad tags and clear the contents of the block.
+.TP
+.B w
+write all of the blocks that are touched.
+.RE
+.PD
+.TP
+.B readonly
+Reject file system operations that would update the device.
+.B readwrite
+Allow the device to be updated.
+.B flashwrite
+Suppress updates of access times to reduce the number of writes to the device;
+intended for use on file systems in flash memory, with or without
+.IR ftl (3).
+.PP
+.I Kfswiz
+reads a kfs image from its standard input and writes
+a kfs image to its standard output, converting the file system
+data structures from big-endian to little-endian or vice-versa.
+This allows an image to be created by a machine
+that uses one byte order
+for use on a machine that uses the other.
+.SH SOURCE
+.B /appl/cmd/disk/kfscmd.b
+.br
+.B /appl/cmd/disk/kfswiz.b
+.SH "SEE ALSO"
+.IR ata (3),
+.IR kfs (3),
+.IR mkfs (8)
+.SH BUGS
+The
+.IR kfs (3)
+console output appears on the
+Inferno console, not
+.IR kfscmd 's
+standard output.

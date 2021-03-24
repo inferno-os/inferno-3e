@@ -1,0 +1,185 @@
+.TH DRAW-CONTEXT 2
+.SH NAME
+Context \-
+graphics environment
+.SH SYNOPSIS
+.EX
+include "draw.m";
+draw := load Draw Draw->PATH;
+
+Context: adt
+{
+    screen:  ref Screen;
+    display: ref Display;
+    cir:     chan of int;
+    ckbd:    chan of int;
+    cptr:    chan of ref Pointer;
+    ctoappl: chan of int;
+    ctomux:  chan of int;
+};
+.EE
+.SH DESCRIPTION
+The
+.B Context
+type encapsulates the data types and channels used by an interactive application.
+A reference to the
+.B Context
+is passed as the first argument to an application when it begins execution:
+.PP
+.EX
+include "draw.m"
+
+Command: module
+{
+	init: fn(nil: ref Draw->Context; nil: list of string);
+};
+.EE
+.PP
+Most programs do not create
+.B Contexts
+but instead inherit one from their parent, typically a shell or window system.
+.PP
+The
+.IR wm (1)
+and
+.IR mux (1)
+environments use
+.B Context
+differently as regards keyboard and pointer (mouse) I/O.
+.I Mux
+applications are given a set of channels in their
+.B Context
+structure.
+.I Wm
+applications provide keyboard and mouse input encoded as Tk events
+on a channel named via
+.B Tk->namechan
+in
+.IR tk (2),
+and the channels in the
+.B Context
+are unused,
+and
+.BR nil .
+.SS Common interface
+The following elements of
+.B Context
+are used by both
+.I wm
+and
+.IR mux :
+.TF display
+.PD
+.TP
+.B screen
+The
+.B Screen
+adt to which the application is connected; may be
+.BR nil .
+See
+.IR draw-screen (2).
+.TP
+.B display
+The
+.B Display
+adt to which the application is connected; may be
+.BR nil .
+See
+.IR draw-display (2).
+.SS Mux-specific interface
+As mentioned above,
+.IR mux (1)
+primes an application's argument
+.B Context
+with channels through which
+.I mux
+and the application interact.
+The channels are used as follows:
+.PP
+.TF ctoappl
+.PD
+.TP
+.B cir
+A channel of type
+.B int
+that delivers events from an infrared remote control device,
+if one is present.
+See the discussion below and
+.IR ir (2)
+for more information.
+.TP
+.B ckbd
+A channel of type
+.B int
+that delivers keystrokes from a keyboard.
+.TP
+.B cptr
+A channel of type
+.B ref
+.B Pointer
+that delivers events from a pointing device such as a mouse.
+See
+.IR devpointer (2).
+.TP
+.B ctoappl
+A channel of type
+.B int
+that delivers control messages from the
+.IR mux (1)
+application multiplexer.
+One message is defined:
+.RS
+.TF MAtop
+.TP
+.B MAtop
+Requests an application to make its set of windows fully visible.
+.RE
+.TF ctoappl
+.PD
+.TP
+.B ctomux
+A channel of type
+.B int
+used by the application to send messages to
+.IR mux (1)
+regarding the application's use of system devices.
+The defined messages are:
+.RS
+.TF AMstartkbd
+.PD
+.TP
+.B AMstartir
+The application is ready to accept
+.IR ir (2)
+data on the
+.B cir
+channel.
+.TP
+.B AMstartkbd
+The application is ready to accept
+keyboard data on the
+.B ckbd
+channel.
+.TP
+.B AMnewpin
+The application needs a PIN.
+.TP
+.B AMstartptr
+The application is ready to accept
+.B Pointer
+data on the
+.B cptr
+channel.
+.TP
+.B AMexit
+An application should send this message before it exits, to allow
+.I mux
+to recover resources.
+.RE
+.SH SEE ALSO
+.IR wm (1),
+.IR mux (1),
+.IR draw-intro (2),
+.IR ir (2),
+.IR prefab-intro (2),
+.IR tk (2)

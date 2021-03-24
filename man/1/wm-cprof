@@ -1,0 +1,94 @@
+.TH WM-CPROF 1
+.SH NAME
+wm/cprof \- graphic coverage profiling of limbo programs
+.SH SYNOPSIS
+.B wm/cprof
+[
+.B -er
+] [
+.BI -m " modname"
+] ... [
+.BI "cmd arg ..."
+]
+.SH DESCRIPTION
+.I Wm/cprof
+is a graphical coverage profiling tool which shows which lines of limbo source have not been
+executed. It can accumulate results over a series of runs if so desired.
+.PP
+The
+.B -r
+options indicates that the profiling results should be recorded. Any profiled dis file
+of the form <name>.dis will have the raw profiling results stored in a file named
+<name>.prf. If this file already existed before the run, the results will be added to
+this file.
+.PP
+The
+.B -m
+option lists the module names which are to be profiled. If none are given, all the
+modules loaded by the kernel will be profiled. The name may be the actual name of
+the module or its path name.
+.PP
+The
+.B -e
+option profiles the module that is loaded first in any following command. In this case
+there is no need to give a
+.B -m
+option as this is added automatically.
+.PP
+Any remaining arguments are assumed to
+specify a command and set of arguments to the command. If this is the case,
+.B wm/cprof
+will automatically start profiling, run the command to completion and then
+stop profiling before optionally recording the results and showing the profile statistics.
+.PP
+If no command is given to profile, then
+.B wm/cprof
+will show the profile statistics from any existing recorded results in .prf files instead.
+.PP
+.B Wm/cprof
+displays the profile statistics graphically. Code that has not been executed is shown
+in white against a red background. Code whose corresponding dis instructions have
+not been wholly executed are shown in red against a white background. Typically a
+line of code such as
+.EX
+	x = !x;
+.EE
+might show only partial execution if x has changed value from 1 to 0 but not
+vice-verse.
+.PP
+The top of the text window names the module along with any modules before and
+after it in the list. If a module has 100% coverage this is stated as well. To help find
+unexecuted code, use the find icon in the menu bar. To move to the next or go back to 
+any other profiled modules, use the arrow icons in the menu bar. The last icon, the reload 
+icon, pops up a menu of profiled modules to choose from.
+.PP
+.B wm/cprof
+calls
+cprof to do the actual work.
+.PP
+.SH EXAMPLE
+.EX
+To profile a particular command
+	wm/cprof /dis/math/sieve 100
+To profile the same command but restrict attention to its own module (Partitions).
+	wm/cprof -m Sieve /dis/math/sieve 100
+A shorter version of the above
+	wm/cprof -e /dis/math/sieve 100
+Make 3 runs recording results as we go using cprof for simplicity
+	cprof -e -r /dis/math/sieve 100
+	cprof -e -r /dis/math/sieve 1000
+	cprof -e -r /dis/math/sieve 10000
+Now look at the cumulative results graphically
+	wm/cprof -m /dis/math/sieve.dis
+.EE
+.SH SOURCE
+.B /appl/wm/cprof.b
+.SH SEE ALSO
+.IR prof (1),
+.IR cprof (1),
+.IR prof (2),
+.IR prof (3)
+.SH BUGS
+.I Wm/cprof
+cannot profile compiled limbo programs.
+

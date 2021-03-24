@@ -1,0 +1,171 @@
+<../../mkconfig
+
+DIRS=\
+	auxi\
+	disk\
+	install\
+	limbo\
+	mash\
+	mpc\
+	sh\
+	usb\
+
+TARG=\
+	9export.dis\
+	B.dis\
+	addpassword.dis\
+	auplay.dis\
+	auhdr.dis\
+	bind.dis\
+	# bit2gif.dis\
+	broke.dis\
+	bytes.dis\
+	cat.dis\
+	cd.dis\
+	changelogin.dis\
+	chmod.dis\
+	cmp.dis\
+	cprof.dis\
+	cook.dis\
+	cp.dis\
+	cpu.dis\
+	csquery.dis\
+	date.dis\
+	dbfs.dis\
+	dial.dis\
+	diff.dis\
+	disdep.dis\
+	disdump.dis\
+	dd.dis\
+	du.dis\
+	echo.dis\
+	emuinit.dis\
+	env.dis\
+	export.dis\
+	fc.dis\
+	fone.dis\
+	ftest.dis\
+	ftpfs.dis\
+	getauthinfo.dis\
+	getenv.dis\
+	gettar.dis\
+	# gif2bit.dis\
+	grep.dis\
+	gunzip.dis\
+	gzip.dis\
+	idea.dis\
+	imount.dis\
+	kill.dis\
+	listen.dis\
+	lockfs.dis\
+	logfile.dis\
+	lookman.dis\
+	lc.dis\
+	ls.dis\
+	lstar.dis\
+	man.dis\
+	man2txt.dis\
+	mathcalc.dis\
+	md5sum.dis\
+	mdb.dis\
+	memfs.dis\
+	metamorph.dis\
+	mkdir.dis\
+	mkrdir.dis\
+	mount.dis\
+	mouse.dis\
+#	mprof.dis\
+	mv.dis\
+	netstat.dis\
+	newer.dis\
+	ns.dis\
+	nsbuild.dis\
+	nsv.dis\
+	os.dis\
+	p.dis\
+	pause.dis\
+	phone.dis\
+	plumb.dis\
+	prof.dis\
+	ps.dis\
+	puttar.dis\
+	pwd.dis\
+	ramfile.dis\
+	randpass.dis\
+	raw2iaf.dis\
+	rawdbfs.dis\
+	rcmd.dis\
+	rdp.dis\
+	read.dis\
+	rm.dis\
+	sed.dis\
+	sendmail.dis\
+	setenv.dis\
+	sha1sum.dis\
+	shutdown.dis\
+	sleep.dis\
+	sort.dis\
+	spawn.dis\
+	src.dis\
+	stack.dis\
+	stream.dis\
+	strings.dis\
+	sum.dis\
+	sv.dis\
+	tail.dis\
+	tclsh.dis\
+	tcs.dis\
+	tee.dis\
+	telnet.dis\
+	test.dis\
+	time.dis\
+	tkcmd.dis\
+	touch.dis\
+	touchcal.dis\
+	tokenize.dis\
+	tr.dis\
+	unicode.dis\
+	unmount.dis\
+	uudecode.dis\
+	uuencode.dis\
+	wav2iaf.dis\
+	wc.dis\
+	webgrab.dis\
+	wish.dis\
+	xd.dis\
+	xargs.dis\
+	yacc.dis\
+	zeros.dis\
+
+MODULES=\
+
+SYSMODULES=\
+	sys.m\
+	draw.m\
+	env.m\
+	string.m\
+	prefab.m\
+	ir.m\
+	srv.m\
+	tk.m\
+	daytime.m\
+	keyring.m\
+	security.m\
+	bufio.m\
+	readdir.m\
+	regex.m\
+	newns.m\
+	sh.m\
+	workdir.m\
+	filepat.m\
+	webget.m\
+	url.m\
+	filter.m\
+
+DISBIN=$ROOT/dis
+
+<$ROOT/mkfiles/mkdis
+<$ROOT/mkfiles/mksubdirs
+
+auhdr.dis: auplay.dis
+	rm -f auhdr.dis && cp auplay.dis auhdr.dis

@@ -1,0 +1,63 @@
+.TH SRV 3
+.SH NAME
+srv \- server registry
+.SH SYNOPSIS
+.EX
+bind '#s' /chan
+
+sys->bind("#s", "/chan", Sys->MREPL);
+.EE
+.SH DESCRIPTION
+.I Srv
+converts between file system operations by applications
+and messages on channels, as described in
+.IR sys-file2chan (2).
+Each attach
+produces a new instance: an empty directory owned
+by the current user in which only files
+may be created, and then only by
+.IR sys-file2chan ,
+using a special internal interface.
+Each such file initially has the same owner as the
+directory, and permissions
+.B 8r600
+(read-write for the owner only),
+but the permissions can be changed by
+.IR sys-wstat
+(see
+.IR sys-stat (2))
+and thus
+.IR chmod (1).
+.PP
+Files may be removed, directly using
+.IR sys-remove (2)
+(and thus
+.IR rm (1)),
+and indirectly by opening them with mode
+.B Sys->ORCLOSE
+(see
+.IR sys-open (2)).
+.I File2chan
+also removes the corresponding file when the last references
+to the server's read and write channels have gone
+(eg, on server exit).
+.SH FILES
+.TF /chan
+.TP
+.B /chan
+directory to which
+.I srv
+is bound by
+.IR wm (1)
+and used by its applications
+.SH SOURCE
+.B /emu/devsrv.c
+.br
+.B /os/port/devsrv.c
+.SH SEE ALSO
+.IR plumb (1),
+.IR wm (1),
+.IR sys-file2chan (2)
+.SH BUGS
+A client with a read or write pending can remain blocked if the server exits before reply.
+

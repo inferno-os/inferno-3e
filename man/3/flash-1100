@@ -1,0 +1,110 @@
+.TH FLASH-1100 3 SA1100
+.SH NAME
+flash1100 \- flash memory (StrongARM)
+.SH SYNOPSYS
+.nf
+.B bind -a '#W' /dev
+
+.BI /dev/flash n all
+.BI /dev/flash n ctl
+.BI /dev/flash n partition
+.BI /dev/flash n stat
+.fi
+.SH DESCRIPTION
+.PP
+The StrongARM SA1100 kernel currently has a different flash memory
+driver than some of the other ports; see
+.SM BUGS
+below.
+.PP
+The flash memory device serves a one-level directory,
+giving access to four files for each physical flash device, starting at
+.IR n=0 :
+.TP
+.BI flash n all
+This file represents the entire flash memory.
+.TP
+.BI flash n partition
+This file represents the space allocated in flash for the flash partition table.
+.TP
+.BI flash n stat
+This file can be read for information about the flash memory and the corresponding
+partition table (if any); see below for details.
+.TP
+.BI flash n ctl
+This writable file accepts a single message
+.BR sync ,
+which flushes all buffered writes to flash.
+.PP
+The first line read from the status file describes the flash chips:
+.IP
+.I "man-id dev-id width sector-size total-size man-name dev-name
+.PP
+where
+.I man-id
+and
+.I dev-id
+are the values (in hex) of the chip's manufacturer and device IDs;
+.I width
+is the width in bytes across the bus;
+.I sector-size
+is the total flash sector size (erase unit size) in bytes, allowing for the bus width;
+.I total-size
+is the total flash size in bytes; and
+.I man-name
+and
+.I dev-name
+are character strings identifying the flash type.
+Following lines give flash protection status in the following form:
+.IP
+.IB start - end : prot
+.PP
+where each line tells the
+.I start
+and
+.I end
+addresses of a region, and a bit mask
+telling its protection status.
+Finally, there is one line for each partition, including
+the standard partitions
+.B all
+and
+.BR partition ,
+of the form:
+.IP
+.I "start length checksum name"
+.PP
+giving the starting address, length and checksum (all in hex),
+and partition name.
+.PP
+Each partition file
+provides read and write access to the bytes in the corresponding region
+of flash memory.
+Bytes can be read and written on any byte boundary:
+the interface hides any alignment restrictions.
+A read returns the value of the bytes at the current file offset.
+A write reprograms the flash at the current
+file offset to the given byte values, using the physical
+device's reprogramming algorithm.
+The driver uses an internal buffer in system memory to hide
+any erasing of flash sectors that might be required to reprogram
+the given region; it also buffers the data written so that a section
+is erased and reprogrammed only when either a subsequent write
+moves out of the buffer or an internal timer causes the data to be flushed to flash.
+.SH SOURCE
+.B /os/sa1100/devflash.c
+.SH SEE ALSO
+.IR sboot (10.8)
+.SH DIAGNOSTICS
+A write will return an error
+if the flash memory fails to be programmed correctly.
+.SH BUGS
+The flash cannot be written if the kernel is executing directly from flash,
+because the physical flash cannot be read during programming.
+.PP
+The buffering of writes is intended to allow the flash to be
+accessed in the same way as a disc, but it has
+disadvantages: it creates a window during which data will be
+lost or corrupted if power is lost or the operation is interrupted in
+some other way; erase is more frequent;
+and it fails to spread the erase load evenly across the device.

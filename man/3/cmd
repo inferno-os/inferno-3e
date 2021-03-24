@@ -1,0 +1,163 @@
+.TH CMD 3 emu
+.SH NAME
+cmd \- interface to host operating system commands
+.SH SYNOPSIS
+.B bind -a '#C' /
+.PP
+.B /cmd/clone
+.br
+.BI /cmd/ n /ctl
+.br
+.BI /cmd/ n /data
+.br
+.BI /cmd/ n /status
+.SH DESCRIPTION
+The
+.I cmd
+device provides an interface to commands on the host operating system,
+when running
+.IR emu (1).
+By convention, this kernel device
+.RB ( #C )
+is bound to the root directory (with the
+.B -a
+option).
+.PP
+Opening
+the
+.B clone
+file provides a handle for starting a command, managing the command's I/O, and checking the command's status.
+It
+creates or allocates a currently unused directory,
+.I n
+under
+.B /cmd
+(where
+.I n
+is a decimal integer).
+It contains the
+files
+.BR ctl ,
+.BR data ,
+and
+.BR status .
+The file descriptor returned from the open of
+.B clone
+provides access to the
+.B ctl
+file of the directory selected by
+.IR cmd .
+.PP
+Reading
+.B ctl
+via the file descriptor returned from opening
+.B clone
+provides the directory
+number,
+.IR n ,
+which can then be used to construct filenames for the related files.
+Writes to
+.B ctl
+must have the format:
+.IP
+.BI "exec " "oscmd args ..."
+.PP
+File offset is ignored for both reading and writing.
+.PP
+Reading
+.B data
+obtains the data that the command writes to its standard output and standard error.
+Writing to
+.B data
+sends the data into the command's standard input.
+.PP
+The read-only
+.B status
+file provides a status line (to a maximum of 128 bytes) of the format:
+.IP
+.BI cmd/ "n refcnt state cmd arg ..."
+.PP
+where each field separator is a single blank. The meaning of each field is:
+.TP
+.I n
+The
+.I cmd
+directory number.
+.TP
+.I refcnt
+The number (decimal) of open file descriptors for
+.BR ctl .
+.TP
+.I state
+The status of the interface in directory
+.IR n :
+.RS
+.TF Execute
+.TP
+.B Open
+Allocated for use but not yet running a command.
+.TP
+.B Execute
+Running a command
+.TP
+.B Close
+Command completed. Available for reallocation via
+.BR clone .
+.RE
+.TP
+.I "cmd arg" ...
+The active command. Output only for state
+.BR Execute .
+.PP
+.SS "Command execution"
+On Unix systems,
+the command is run via
+.B /bin/sh
+as follows:
+.IP
+.EX
+.BI "/bin/sh -c '" cmd args... "'"
+.EE
+.PP
+The command will be run using the Unix user and group ID of
+the user that started
+.IR emu (1),
+unless it was started by the super-user, in which case
+.I cmd
+attempts to set the Unix user ID and group ID to those of a Unix user corresponding to
+the current Inferno user's name, and failing that, as user and group
+.BR nobody .
+.PP
+On Plan 9,
+the command is run via
+.B /bin/rc
+as follows:
+.IP
+.EX
+.BI "/bin/rc -c '" cmd args... "'"
+.EE
+.PP
+The command will be run using the Plan 9 identity of
+the user that started
+.IR emu (1).
+.PP
+On Windows systems,
+the command must be a binary executable (not built into the command interpreter) in the current path.
+It is always run with the same Windows user identity as started
+.IR emu (1).
+Furthermore,
+the
+.B ctl
+file transforms all slashes not quoted or escaped by backslashes to backslashes in the command string
+before executing it.
+.SH SOURCE
+.B /emu/devcmd.c
+.SH "SEE ALSO"
+.IR emu (1),
+.IR os (1)
+.SH BUGS
+Standard output and standard error ideally should not be mingled.
+.br
+Exit status should be available.
+.br
+The maximum length of a command string is 128 bytes.

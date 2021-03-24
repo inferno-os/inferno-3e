@@ -1,0 +1,17 @@
+#
+# Format:
+#
+# - service-type port name - connection type - daemon command - command arguments -
+# where:
+#
+#
+# service-type is S for spawner where srv does the announce and listen
+#                 M for monolith, where srv does nothing but spawn the process (deprecated)
+
+S infsigner       tcp /dis/lib/signer.dis 
+S infcsigner      tcp /dis/lib/countersigner.dis
+S inflogin        tcp /dis/lib/logind.dis         
+S styx            tcp /dis/lib/styxd.dis none clear sha md5 rc4 sha/rc4 md5/rc4
+S rstyx           tcp /dis/lib/rstyxd.dis none clear sha md5 rc4 sha/rc4 md5/rc4
+S infdb           tcp /dis/lib/dbsrv.dis  none clear sha md5 rc4 sha/rc4 md5/rc4
+S virgil          udp /dis/lib/virgild.dis

@@ -1,0 +1,282 @@
+.TH STYXMON 10.8 Strongarm
+.SH NAME
+styxmon \- first stage bootstrap for SA110 and SA1100
+.SH SYNOPSIS
+.EX
+echo b9600 >/dev/eia0ctl
+mount -A /dev/eia0 /n/rdbg
+.EE
+.SH DESCRIPTION
+.I Styxmon
+is the first stage bootstrap program for Inferno on various Strongarm platforms.
+It also acts as a Styx server, responding to T messages
+on the serial port, allowing a debugging host to
+do an unauthenticated
+.I mount
+(see
+.IR bind (1))
+of
+the device to access it.
+.PP
+.I Styxmon
+is burned in the non-volatile (flash) RAM at an address
+such that processor reset
+executes it.
+.I Styxmon
+is responsible
+for basic machine initialization, loading and executing the secondary
+bootloader (or any other standalone program).
+It provides a specialised interface to the standalone program,
+used only by
+.IR sboot (10.8);
+see the source code.
+.PP
+Initially,
+.I styxmon
+exports four files into the namespace.
+Programs that are run from Styxmon, such as sboot, can add
+additional files to the namespace that is exported.
+.IP
+.EX
+/n/rdbg/boot
+/n/rdbg/cons
+/n/rdbg/ctl
+/n/rdbg/mem
+.EE
+.PP
+These files are described below.
+.TF cons
+.PD
+.TP
+.B boot
+Any file copied here will be executed, if it has
+a standard Plan 9 or AIF (ARM) header.  For example, to
+boot
+.L sbsword.aif
+(the AIF executable for
+.IR sboot ),
+do the following:
+.RS
+.IP
+.EX
+cp sbsword.aif /n/rdbg/boot
+.EE
+.PP
+This is equivalent to finding a region of memory
+that is known to be unused, and doing the following
+set of commands (assuming that such a region
+exists at
+.LR 0x10000 ):
+.IP
+.EX
+dd -if sbsword.aif -of /n/rdbg/mem -bs 1024 -oseek 64
+echo e0x10000 > /n/rdbg/ctl
+.EE
+.RE
+.TP
+.B cons
+The console file, which can be read to get
+console output; when written to, the data is sent as console input
+to any program currently running on the device.
+For instance, to keep an ongoing log of console output:
+.RS
+.IP
+.B "cat /n/rbdg/cons&"
+.PP
+If sboot is running, a
+.L P
+command can be typed to it with:
+.IP
+.B "echo P > /n/rdbg/cons"
+.PP
+For an interactive console:
+.IP
+.EX
+cat /n/rbdg/cons&
+cat >/n/rbdg/cons
+.EE
+.RE
+.TP
+.B ctl
+The control file, to which commands can be written,
+described below.
+.TP
+.B mem
+A seekable file that represents all of
+the device's memory.  It should be used with utilities
+that selectively seek and read or write parts of it,
+such as
+.IR dd (1)
+and
+.IR mdb (1).
+.PP
+The control file
+.B ctl
+accepts the following commands:
+.TP
+.BI E offset
+Execute at the specified flash
+.IR offset ,
+which can be decimal, or hexadecimal with
+a
+.L 0x
+prefix).
+For instance, to execute the program at
+offset
+.L 0x8000
+in the flash:
+.RS
+.IP
+.B "echo E0x8000 > /n/rdbg/ctl"
+.PP
+The program at the specified offset is expected
+to have a standard Plan 9 or AIF header.
+.PP
+The address of a boot parameters structure (see
+.BR /os/sa1100/bootparam.h )
+is passed as the first argument to the call
+to the entry routine.
+.RE
+.TP
+.B E
+Execute the default boot program from flash.
+.TP
+.BI e address
+Execute at the specified memory
+.IR address .
+.TP
+.BI S offset
+Start at the specified flash
+.IR offset .
+A call
+will actually be made directly to the specified
+address.  The address of the BPI structure is still
+passed as the first argument.
+.TP
+.BI s address
+Start at the specified memory
+.IR address .
+.TP
+.B r0
+Soft reset (reinitialize).
+.TP
+.B r1
+Hard reset.
+.TP
+.BI r address
+Reset to specified address.  This allows replacement
+monitor code to be tested.  Essentially, this stores
+a magic number and the address in registers that
+survive the reset, and when the system resets and
+sees the magic number, it vectors to the specified
+address instead of running the normal monitor
+initialization.
+.TP
+.BI x "val"
+Force the current program to exit with the
+specified exit code
+.IR val .
+This will return
+Styxmon to the
+.I hangout
+state.
+.TP
+.BI b "baud"
+Set the serial speed to the specified
+.I baud
+rate.
+This does not change the current speed,
+but instead changes the connection speed used after
+the device is unmounted and remounted.
+.TP
+.B C
+Console reset.  This makes all text in the
+circular message buffer act as if it is new,
+so that the next read of cons or ctl will
+display all of it.
+For instance, if text was put in the circular
+message buffer and then the kernel crashed,
+the following can be done to recover the 
+final messages:
+.RS
+.IP
+.EX
+echo C > /n/rdbg/ctl
+cat /n/rdbg/ctl
+.EE
+.PP
+Or alternatively:
+.IP
+.EX
+cat /n/rdbg/cons&
+echo C > /n/rdbg/ctl
+.EE
+.PP
+.B ctl
+can also be read, in which case it acts like
+a non-blocking form of
+.L cons
+(ie, it will
+return the latest console output, then end-of-file).
+In most cases, it is better to leave
+.L cat /n/rdbg/cons&
+running instead,
+so that all console output can be seen when
+it becomes available.  There may be cases, however,
+where it is desirable just to capture new output
+at specified moments.
+.RE
+.SH EXAMPLES
+.PP
+To initiate a connection to a Styxmon-enabled board:
+.IP
+.EX
+echo b9600 > /dev/eia0ctl
+mount -A /dev/eia0 /n/rdbg
+.EE
+.PP
+To connect at a faster rate:
+.IP
+.EX
+# first connect at 9600:  
+echo b9600 > /dev/eia0ctl
+mount -A /dev/eia0 /n/rdbg
+# tell styxmon what rate to use next time:
+echo b38400 > /n/rdbg/ctl
+unmount /n/rdbg
+# now reconnect at the faster rate:
+echo b38400 > /dev/eia0ctl
+mount -A /dev/eia0 /n/rdbg
+.EE
+.PP
+To see the initial
+.I styxmon
+startup message (including memory size,
+CPU speed, FIDs opened, etc.) after mounting:
+.IP
+.EX
+cat /n/rdbg/ctl
+.EE
+.PP
+The script
+.L /usr/ddk/lib/mashinit
+has menus to
+handle connecting, changing the speed, downloading kernels,
+etc. automatically.
+.PP
+In the
+.I styxmon
+console output, a
+.L *
+on a line by itself means
+that
+.I styxmon
+has returned from executing a command, and is now
+polling for Styx messages.
+.PP
+Styxmon on the SA1100 uses DMA channel 3 to collect data from
+the FIFO's of serial port 3.  If that serial port is to be
+reused for some other purpose, it is important to make sure that
+the DMA channel is disabled first.
+.SH SEE ALSO
+.IR sboot (10.8)

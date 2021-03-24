@@ -1,0 +1,44 @@
+.TH VERIFY 8
+.SH NAME
+verify \- command to authenticate receiver of blinded certificate
+.SH SYNOPSIS
+.BI lib/verify " set-top-box-id"
+.SH DESCRIPTION
+.I Verify
+is run on a `signer' server to extract information from the
+.BI /keydb/signed/ set-top-box-id
+file created by
+.IR signer (8).
+That information consists of the previously crafted authentication certificate and the `blinded' version of the certificate that was sent to the requesting client.
+.PP
+.I Verify
+displays the `blinded' version textually or graphically, as appropriate, so that it can be compared to that reported by the set-top-box owner over a secure independent mechanism (for example, telephone). If the operator of
+.I verify
+is convinced of the identity of the caller, the operator should accept when prompted by
+.IR verify .
+.I Verify
+then writes the authentication certificate to
+.BI /keydb/countersigned/ set-top-box-id,
+as input for
+.I countersigner
+(see
+.IR signer (8)).
+.PP
+.I Note:
+if the operator of
+.I verify
+accepts the identity, the set-top-box owner should be requested
+to answer `yes' to the prompt displayed by
+.IR register (8).
+The order of
+acceptance (first on the signer) then on the client is
+important.
+.SH FILES
+.BI /keydb/signed/ set-top-box-id
+.br
+.BI /keydb/countersigned/ set-top-box-id
+.SH SOURCE
+.B /appl/lib/verify.b
+.SH SEE ALSO
+.IR register (8),
+.IR signer (8)

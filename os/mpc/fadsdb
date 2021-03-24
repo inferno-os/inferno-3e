@@ -1,0 +1,120 @@
+# fads board with kernel debugging
+dev
+	root
+	cons	archfads
+	mnt
+	pipe
+	prog
+	rtc
+	srv
+	ssl
+
+	draw
+
+	ip	bootp ip ipaux iproute arp netlog ptclbsum iprouter plan9 nullmedium pktmedium
+	ether netif netaux ethermedium
+	uart
+	flash
+#	usb
+	touch	spi
+#	pcmcia
+#	ata	inb
+
+	ftl
+#	kfs		chk kcon console dat dentry fcall fs fswren iobuf kfs sub uid
+	kprof
+
+	bench
+	vid	i2c
+	i2c	i2c
+
+ip
+#	il
+	tcp
+	udp
+#	rudp
+#	igmp
+	ipifc
+	icmp
+	ipmux
+
+lib
+	interp
+	tk
+	prefab
+	image
+	memlayer
+	memimage
+	keyring
+	kern
+	crypt
+
+link
+	etherscc
+	flashamd
+	pppmedium ppp compress
+
+mod
+	sys
+	draw
+	prefab
+	tk
+	keyring
+
+port
+	alarm
+	alloc
+	auth
+	chan
+	dev
+	dial
+	dis
+	discall
+	exception
+	exportfs
+	inferno
+	latin1
+	pgrp
+	print
+	proc
+	qio
+	qlock
+	styx
+	sysfile
+	taslock
+	utils
+	xalloc
+
+code
+	int cflag = 0;
+	int consoleprint = 1;
+	int panicreset = 0;
+	int kernel_pool_pcnt = 10;
+	int main_pool_pcnt = 40;
+	int heap_pool_pcnt = 20;
+	int image_pool_pcnt = 40;
+
+init
+	mpcinit
+
+root
+	/chan
+	/dev
+	/dis
+	/n
+	/net
+	/nvfs /
+	/prog
+	/icons
+	/osinit.dis
+	/dis/lib/auth.dis
+	/dis/lib/ssl.dis
+	/n/local /
+
+code
+	int  dbgstart = 1;		/* 1 = start in dbg mode */
+	char dbgdata[] = "#t/eia2";	/* data line */
+	char dbgctl[] = "#t/eia2ctl";	/* ctl line */
+	char dbgctlstart[] = "B9600";	/* write this at start of session */
+	char dbgctlstop[] = "h";	/* write this to dbgctl to cause debugger to shut down*/
+	char dbgctlflush[] = "f";	/* write to dbgctl on shut down to flush unread output */

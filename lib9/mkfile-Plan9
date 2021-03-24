@@ -1,0 +1,3 @@
+TARGFILES=errstr-Plan9.$O\
+	dirstat-Plan9.$O\
+

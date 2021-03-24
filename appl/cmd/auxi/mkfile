@@ -1,0 +1,13 @@
+<../../../mkconfig
+
+TARG=\
+	digest.dis\
+
+SYSMODULES=\
+	arg.m\
+	sys.m\
+	strokes.m\
+
+DISBIN=$ROOT/dis/auxi
+
+<$ROOT/mkfiles/mkdis

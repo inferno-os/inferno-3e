@@ -1,0 +1,157 @@
+.TH TK 2
+.SH NAME
+Tk \- graphics toolkit
+.SH SYNOPSIS
+.EX
+include "tk.m";
+tk := load Tk Tk->PATH;
+
+Tki:    type ref Draw->Image;
+
+Toplevel: adt
+{
+    id:    int;
+    image: ref Draw->Image;
+};
+
+toplevel: fn(screen: ref Draw->Screen, arg: string): ref Toplevel;
+namechan: fn(t: ref Toplevel, c: chan of string, n: string): string;
+cmd:      fn(t: ref Toplevel, arg: string): string;
+mouse:    fn(screen: ref Draw->Screen, x, y, button: int);
+keyboard: fn(screen: ref Draw->Screen, key: int);
+windows:  fn(screen: ref Draw->Screen): list of ref Toplevel;
+intop:    fn(screen: ref Draw->Screen, x, y: int): ref Toplevel;
+imageget: fn(t: ref Toplevel, name: string): (Tki, Tki, string);
+imageput: fn(t: ref Toplevel, name: string, i: Tki, m: Tki): string;
+.EE
+.SH DESCRIPTION
+The
+.B Tk
+module provides primitives for building user interfaces, based on
+Ousterhout's Tcl/TK.
+The interface to the toolkit itself is primarily the passing of strings
+to and from the elements of the toolkit using the
+.B cmd
+function; see section 9 of this manual for more information
+about the syntax of those strings.
+.PP
+.B Toplevel
+creates a new window
+called a
+.BR Toplevel ,
+which is under the control of the
+.B Tk
+toolkit,
+on an existing
+.IR screen ,
+usually one inherited from the graphics
+.B Context
+(see
+.IR draw-context (2)).
+The
+.B Toplevel
+is passed to
+.B cmd
+and
+.B namechan
+.RI ( q.v. )
+to drive the widgets in the window.
+.I Arg
+is a string containing creation options (such as
+.BR "-borderwidth 2" )
+that are applied when creating the toplevel window.
+.PP
+.B Cmd
+passes command strings to the widgets in the
+.B Toplevel
+.I t
+and returns the string resulting from their execution.
+For example, given a canvas
+.B .c
+in the
+.B Toplevel
+.BR t ,
+.EX
+    x := int tk->cmd(t, ".c cget -actx");
+.EE
+returns the integer
+.I x
+coordinate of the canvas.
+.PP
+Bindings can be created in a
+.B Toplevel
+that trigger strings to be sent on Limbo channels.
+Such channels must be declared to the
+.B Tk
+module using
+.BR namechan .
+For example, to create a button that sends the word
+.B Ouch
+when it is pressed:
+.EX
+    hitchannel := chan of string;
+    tk->namechan(t, hitchannel, "channel");
+    tk->cmd(t,
+         "button .b.Hit -text Hit -command {send channel Ouch}");
+    expl := <-hitchannel;	# will see Ouch when button pressed
+.EE
+.PP
+.B Mouse
+and
+.B keyboard
+pass mouse and keyboard events
+.I to
+.BR Tk ,
+for delivery to widgets; they are usually called only by a window manager.
+.PP
+.B Windows
+returns a list of windows on the given
+.IR screen .
+.B Intop
+returns a reference to the window under point
+.RI ( x , y )
+on the given
+.IR screen ,
+returning nil if none is found.
+.PP
+.B Imageget
+returns copies of the image and mask of the Tk bitmap or Tk widget
+with the given
+.I name
+associated with
+.B Toplevel
+.IR t ;
+either
+.B Image
+could be nil.
+.B Imageput
+replaces the image
+.RI ( i )
+and mask
+.RI ( m )
+of the Tk bitmap image
+.I name
+in
+.IR t .
+Both functions return strings that are nil if the operation was successful,
+but contain a diagnostic on error (eg, invalid top level or name).
+.SH SOURCE
+.B /interp/tk.c
+.br
+.B /tk/*.c
+.SH SEE ALSO
+.IR intro (9),
+.IR tkcmd (1),
+.IR sh-tk (1),
+.IR draw-context (2),
+.IR wmlib (2),
+.br
+`An Overview of Limbo/Tk', this manual, Volume 2.
+.SH BUGS
+Because
+.B Tk
+input is handled globally per
+.BR Screen ,
+there can be only one instance of a
+.B Tk
+implementation on a given machine, a restriction that will be lifted.

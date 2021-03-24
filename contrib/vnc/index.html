@@ -1,0 +1,91 @@
+<HTML><HEAD>
+<TITLE>Inferno Contribution: vnc</TITLE>
+</HEAD><BODY>
+<H3>Inferno Contribution: vnc</H3>
+<PRE>
+PROJECT : VNC 3.3 client and server for Inferno
+AUTHOR :  Marc Hufschmitt, marcas1@mime.univ-paris8.fr
+FILE : README.txt
+
+__________________________________________________
+** DESCRIPTION **
+
+VNC (Virtual Network Computer) is a remote display system.  
+
+This file comes with a set of Limbo sources (Inferno's programation
+language) and a Makefile written for Linux. See the INSTALL.txt file
+for information about building and running the VNC client/server.
+
+__________________________________________________
+** INSTALLATION & BUILDING **
+
+Refer to INSTALL.txt
+
+__________________________________________________
+** LINKS **
+
+Marc Hufschmitt Inferno's webpage
+http://www.mime.univ-paris8.fr/~marcas1/inferno
+
+VNC homepage
+http://www.uk.research.att.com/vnc/
+
+RFB protcol informations
+http://www.uk.research.att.com/vnc/protocol.html
+
+__________________________________________________
+** KNOWN BUGS AND TO DO **
+
+- Bugs in hextile encoding
+
+- Try to implement the copy-rectangle method (though it's coded, there
+  is no way to detect window moves from /dev/draw device ou Inferno
+  wm). 
+
+- add a password window in VNCclient.b 
+
+- internationalize to english comments and menus.
+
+- Enhance server encoding method selection
+
+__________________________________________________
+** CHANGES **
+
+15/02/2001 :
+
+- README and INSTALL are added to the sources. 
+
+- changing 'net' to 'tcp' in connecte() in VNCclient.b since Inferno
+  v3 doesn't use tcp as net default.
+
+13/09/1999 :
+
+- The code is very imperfect but I have to finalize my report, so
+let's freeze the code.
+
+25/08/1999 :
+
+- Add Hextile, RRE and coRRE encodings
+
+
+15/06/1999 :
+- Starting the VNC client and server for Inferno from scratch
+
+__________________________________________________
+** UPDATES **
+
+All suggestions are welcome, feel free to write to the author if you
+have problems or if you add new feature.
+
+marcas1@mime.up8.edu or mh@ai.up8.edu
+
+__________________________________________________
+EOF</PRE>
+<HR>
+The following files are available for downloading:<TABLE BORDER="0">
+<TR>
+<TD><a href="VNC_Inferno.1.0.tgz">VNC_Inferno.1.0.tgz</a></TD>
+<TD>(65815 bytes)</TD>
+</TR>
+</TABLE>
+</BODY></HTML>

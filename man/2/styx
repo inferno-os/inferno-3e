@@ -1,0 +1,287 @@
+.TH STYX 2
+.SH NAME
+Styx: Rmsg, Tmsg, dir2text, istmesg, packdir, packdirsize, readmesg, qid2text, unpackdir \- interface to Styx file protocol
+.SH SYNOPSIS
+.EX
+include "styx.m";
+styx := load Styx Styx->PATH;
+
+Tmsg: adt {
+    tag: int;
+    pick {
+    Readerror =>
+        error: string;      # tag is unused in this case
+    Nop =>
+    Flush =>
+        oldtag: int;
+    Clone =>
+        fid, newfid: int;
+    Walk =>
+        fid: int;
+        name: string;
+    Open =>
+        fid, mode: int;
+    Create =>
+        fid, perm, mode: int;
+        name: string;
+    Read =>
+        fid, count: int;
+        offset: big;
+    Write =>
+        fid: int;
+        offset: big;
+        data: array of byte;
+    Clunk or
+    Stat or
+    Remove => 
+        fid: int;
+    Wstat =>
+        fid: int;
+        stat: Sys->Dir;
+    Attach =>
+        fid: int;
+        uname, aname: string;
+    }
+
+    read:   fn(fd: ref Sys->FD, msglim: int): ref Tmsg;
+    unpack: fn(a: array of byte): (int, ref Tmsg);
+    pack:   fn(t: self ref Tmsg): array of byte;
+    packedsize: fn(t: self ref Tmsg): int;
+    text:   fn(t: self ref Tmsg): string;
+};
+
+Rmsg: adt {
+    tag: int;
+    pick {
+    Nop or
+    Flush =>
+    Error =>
+        ename: string;
+    Clunk or
+    Remove or
+    Clone or
+    Wstat =>
+        fid: int;
+    Walk or
+    Create or
+    Open or
+    Attach =>
+        fid: int;
+        qid: Sys->Qid;
+    Read =>
+        fid: int;
+        data: array of byte;
+    Write =>
+        fid, count: int;
+    Stat =>
+        fid: int;
+        stat: Sys->Dir;
+    }
+
+    read:   fn(fd: ref Sys->FD, msglim: int): ref Rmsg;
+    unpack: fn(a: array of byte): (int, ref Rmsg);
+    pack:   fn(r: self ref Rmsg): array of byte;
+    packedsize: fn(r: self ref Rmsg): int;
+    text:   fn(r: self ref Rmsg): string;
+};
+
+init:        fn();
+readmesg:    fn(fd: ref Sys->FD, msglim: int): (array of byte, string);
+istmesg:     fn(a: array of byte): int;
+packdirsize: fn(d: Sys->Dir): int;
+packdir:     fn(d: Sys->Dir): array of byte;
+unpackdir:   fn(f: array of byte): (int, Sys->Dir);
+dir2text:    fn(d: Sys->Dir): string;
+qid2text:    fn(q: Sys->Qid): string;
+
+NOTAG: con 16rFFFF;
+MAXRPC: con 128 + Sys->ATOMICIO;
+.EE
+.SH DESCRIPTION
+.B Styx
+provides a Limbo interface to send and receive messages of the Styx file service protocol,
+described by Section 5 this manual (a thorough reading of which
+is advised before using this module).
+.B Init
+must be called before using any other functions in the module.
+.PP
+A Styx client transmits requests to a server as `T-messages'
+and receives replies in matching `R-messages'.
+A T-message is here represented by values of the type
+.BR Tmsg ,
+and an R-message by values of type
+.BR Rmsg .
+Every message has a
+.B tag
+value, and the alternatives of the pick adt represent the possible operation types of a T-message,
+generally with parameter names and types corresponding to those described in section 5.
+The exceptions are:
+.B Tmsg.Write
+and
+.B Rmsg.Read
+contain an array of byte,
+.BR data ,
+to hold the data for the corresponding message, and the `count' parameter of the message is simply the length of that array;
+and there is an alternative labelled
+.B Readerror
+that does not appear in the protocol but is used to represent input errors as described below.
+.PP
+The following functions are provided by
+.BR Tmsg:
+.TP
+.BI read( fd\fP,\fP\ msglim )
+Read file descriptor
+.I fd
+to obtain exactly one T-message and return (a reference to) the corresponding
+.BR Tmsg .
+A nil value is returned on end of file.
+Otherwise, if the read fails or the data read does not form a valid T-message,
+the value returned will be a
+.B Tmsg.Readerror
+value in which the
+.B error
+member describes the error.
+.I Msglim
+gives the maximum number of bytes in any acceptable T-message;
+any incoming message larger than that will result in a diagnostic as a
+.B Tmsg.Readerror
+value.
+A
+.I msglim
+of 0 means `no limit'.
+The constant
+.B MAXRPC
+is a reasonable value on current systems.
+.TP
+.IB t .pack()
+Return an array of bytes containing the value of
+.I t
+in the machine-independent format described in Section 5.
+.TP
+.BI unpack( a )
+The array
+.I a
+is assumed to contain zero or more T-messages.
+.B Unpack
+attempts to unpack the first message, and returns a tuple of the form
+.RI ( n , v ).
+If successful,
+.I n
+is the number of bytes at the start of
+.I a
+used by the message, and
+.I v
+is the corresponding
+.B Tmsg
+value.
+If
+.I a
+contains the prefix of a valid message but more data is required to complete it,
+.I n
+is zero (and
+.I v
+is nil); the caller will typically read more data, append it to
+.IR a ,
+and try again.
+If the message is invalid,
+.I n
+is -1
+and
+.I v
+is again nil.
+.TP
+.IB t .packedsize()
+Return the number of bytes required for the value of
+.I t
+when packed in its machine-independent format.
+.TP
+.IB t .text()
+Return a printable string showing the contents of
+.IR t ,
+for tracing or debugging.
+.PP
+An R-message is represented by
+.BR Rmsg .
+Its member functions behave exactly as those for
+.BR Tmsg ,
+except that they operate on R-messages not T-messages.
+.PP
+When a client reads a directory, the data returned in the reply must be formatted
+as described in
+.IR read (5):
+an array of directory entries, one per file, with each entry formatted in
+a machine-independent format.
+An appropriate array value can be produced by
+.B packdir
+from a
+.B Sys->Dir
+structure, as used by
+.IR sys-stat (2).
+The space that packed representation will take can be calculated beforehand by
+.BR packdirsize .
+The server will usually fill the buffer for the reply to the read
+with as many entries as will fit,
+checking the space remaining against the result of
+.B packdirsize
+and if the value will fit, storing the result of
+.BR packdir .
+.PP
+The functions
+.B dir2text
+and
+.B qid2text
+produce printable strings showing the contents of the corresponding data structures,
+for use when tracing or debugging.
+.PP
+Applications that acts as file servers will read T-messages and
+reply with R-messages.
+They can use
+.B Tmsg.read
+to read each T-message, build an
+.B Rmsg
+reply value
+.IR r ,
+and use
+.IB r .pack
+to produce an array of bytes to be written in reply by
+.B Sys->write
+(see
+.IR sys-read (2)).
+.PP
+A few specialised programs might need the lower-level function
+.B readmesg
+that underlies
+.B Tmsg.read
+and
+.BR Rmsg.read .
+It reads a single message, which can be either a T-message or R-message,
+and returns it as an array of bytes,
+which can then be unpacked using
+.B Tmsg.unpack
+or
+.BR Rmsg.unpack .
+The predicate
+.B istmesg
+returns true if the contents of array
+.I f
+looks like a packed representation of a T-message,
+judging only by its
+.I type
+byte.
+.PP
+When generating the
+.B nop
+message (see
+.I attach (5)),
+the constant
+.B NOTAG
+can be used in
+.B Tmsg.tag
+and
+.B Rmsg.tag
+to represent `no tag value'.
+.SH SOURCE
+.B /appl/lib/styx.b
+.SH SEE ALSO
+.IR styxlib (2),
+.IR intro (5)

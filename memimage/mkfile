@@ -1,0 +1,26 @@
+<../mkconfig
+
+LIB=libmemimage.a
+
+COMMONFILES=\
+	arc.$O\
+	defont.$O\
+	ellipse.$O\
+	fillpoly.$O\
+	line.$O\
+	poly.$O\
+	string.$O\
+	subfont.$O\
+	icossin.$O\
+	icossin2.$O\
+
+<mkfile-$SYSTARG		#sets $SYSFILES based on target OS architecture
+
+OFILES=$COMMONFILES $SYSFILES
+
+HFILES=	$ROOT/include/image.h\
+	$ROOT/include/memimage.h\
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE
+
+%-x11.$O:	xmem.h

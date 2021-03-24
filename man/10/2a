@@ -1,0 +1,114 @@
+.TH 2A 10.1 
+.SH NAME
+0a, 1a, 2a, 5a, 8a, ka, qa, va \- assemblers
+.SH SYNOPSIS
+.B 0a
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B 1a
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B 2a
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B 5a
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B 8a
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B ka
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B qa
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B va
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.SH DESCRIPTION
+.IR 0a ,
+.IR 1a ,
+.IR 2a ,
+.IR 5a ,
+.IR 8a ,
+.IR ka ,
+.IR qa
+and
+.I va
+assemble the named files into MIPS-LE, MC68000,
+MC68020, ARM, i386, SPARC, PowerPC, and MIPS
+object files.
+The assemblers handle the most common C preprocessor directives and the associated
+command-line options
+.BR -D
+and
+.BR -I .
+Other options are:
+.TP
+.BI -o " obj"
+Place output in file
+.I obj
+(allowed only if there is just one input file).
+Default is to take the last element of the input path name,
+strip any trailing
+.BR .s ,
+and append
+.RI . O ,
+where
+.I O
+is first letter of the assembler's name.
+.SH FILES
+The directory
+.B /sys/include
+is searched for include files after
+machine-dependent files in
+.BR /$objtype/include .
+.SH SOURCE
+.BR /utils/2a ,
+etc.
+.SH SEE ALSO
+.IR 2c (10.1),
+.IR 2l (10.1).
+.PP
+``A manual for the Assembler'', Volume 2

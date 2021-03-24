@@ -1,0 +1,14 @@
+#
+#	architecture-dependent files for MacOSX
+#
+
+TARGFILES=devfs-posix.$O\
+	deveia-FreeBSD.$O\
+	devip.$O\
+	ipif-FreeBSD.$O\
+	os-MacOSX.$O\
+	win-x11.$O\
+	srv.$O\
+	asm-MacOSX-$OBJTYPE.$O
+
+SYSLIBS=/usr/X11R6/lib/libX11.a -lm 

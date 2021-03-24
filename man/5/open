@@ -1,0 +1,195 @@
+.TH OPEN 5 
+.SH NAME
+open, create \- prepare a fid for I/O on an existing or new file
+.SH SYNOPSIS
+.ta \w'\fLTcreate 'u
+.B
+Topen	
+.IR tag [2]
+.IR fid [2]
+.IR mode [1]
+.br
+.B
+Ropen	
+.IR tag [2]
+.IR fid [2]
+.IR qid [8]
+.PP
+.B
+Tcreate	
+.IR tag [2]
+.IR fid [2]
+.IR name [28]
+.IR perm [4]
+.IR mode [1]
+.br
+.B
+Rcreate	
+.IR tag [2]
+.IR fid [2]
+.IR qid [8]
+.SH DESCRIPTION
+The
+.B open
+request asks the file server to check permissions and
+prepare a fid for I/O with subsequent
+.B read
+and
+.B write
+messages.
+The
+.I mode
+field determines the type of I/O:
+0, 1, 2, and 3
+.RB ( OREAD ,
+.BR OWRITE ,
+.BR ORDWR ,
+.BR OEXEC )
+mean
+.I
+read access, write access, read and write access,
+and
+.I
+execute access,
+to be checked against the permissions for the file.
+In addition, if
+.I mode
+has the
+.B OTRUNC
+.RB ( 16r10 )
+bit set,
+the file is to be truncated, which requires write permission;
+if the
+.I mode
+has the
+.B ORCLOSE
+.RB ( 16r40 )
+bit set, the file is to be removed when the fid
+is clunked, which requires permission to remove the file from its directory.
+If other bits are set in
+.I mode
+they will be ignored.
+It is illegal to write a directory, truncate it, or attempt to remove it on close.
+All these permissions are checked at the time of the
+.B open
+request; subsequent changes to the permissions of files do not affect
+the ability to read, write, or remove an open file.
+.PP
+The 
+.B create
+request asks the file server to create a new file
+with the 
+.I name
+supplied, in the directory
+.RI ( dir )
+represented by
+.IR fid ,
+and requires write permission in the directory.
+The owner of the file is the implied user id of the request,
+the group of the file is the same as
+.IR dir ,
+and the permissions are the value of
+.ce
+.B "(perm&(~0777|0111)) | (dir.perm&perm&0666)"
+if a regular file is being created and
+.ce
+.B "(perm&~0777) | (dir.perm&perm&0777)"
+if a directory is being created.
+This means, for example, that if the
+.B create
+allows read permission to others, but the containing directory
+does not, then the created file will not allow others to read the file.
+.PP
+Finally, the newly created file is opened according to
+.IR mode ,
+and
+.I fid
+will represent the newly opened file.
+.I Mode
+is not checked against the permissions in
+.IR perm .
+The
+.I qid
+for the new file is returned with the
+.B create
+reply message.
+.PP
+Directories are created by setting the
+.B CHDIR
+bit
+.RB ( 16r80000000 )
+in
+.IR perm .
+.PP
+The names
+.B .
+and
+.B ..
+are special; it is illegal to create files with these names.
+.PP
+It is an error for either of these messages if the fid
+is already the product of a successful
+.B open
+or
+.B create
+message.
+.PP
+An attempt to
+.B create
+a file in a directory where the given
+.I name
+already exists will be rejected;
+in this case, the
+.B create
+system call
+(see
+.IR sys-open (2))
+uses
+.B open
+with truncation.
+The algorithm used by the
+.B create
+system call is:
+first walk to the directory to contain the file.
+If that fails, return an error.
+Next
+.B walk
+to the specified file.
+If the
+.B walk
+succeeds, send a request to
+.B open
+and truncate the file and return the result, successful or not.
+If the
+.B walk
+fails, send a
+.B create
+message.
+If that fails, it may be because the file was created by another
+process after the previous
+.B walk
+failed, so (once) try the
+.B walk
+and
+.B open
+again.
+For the behaviour of
+.B create
+on a union directory, see
+.IR sys-bind (2).
+.SH ENTRY POINTS
+The
+.B open
+and
+.B create
+calls both generate
+.B open
+messages; only
+.B create
+generates a
+.B create
+message.
+.SH SEE ALSO
+.IR sys-bind (2),
+.IR sys-open (2),
+.IR stat (5)

@@ -1,0 +1,199 @@
+.TH SYS-STAT 2
+.SH NAME
+fstat, fwstat, stat, wstat \- get and put file status
+.SH SYNOPSIS
+.EX
+include "sys.m";
+sys := load Sys Sys->PATH;
+
+fstat:  fn(fd: ref FD): (int, Dir);
+fwstat: fn(fd: ref FD; d: Dir): int;
+stat:   fn(name: string): (int, Dir);
+wstat:  fn(name: string, d: Dir): int;
+.EE
+.SH DESCRIPTION
+Given a file's
+.IR name ,
+or an open file descriptor
+.IR fd ,
+these routines retrieve or modify file status information.
+.B Stat
+and
+.B fstat
+retrieve information about
+.I name
+or
+.I fd
+into the
+.B Dir
+member of the return tuple.
+The
+.B int
+member will be zero for success and \-1 for failure.
+.B wstat
+and
+.B fwstat
+write information back, thus changing file attributes according to
+.IR d .
+Both functions return zero for success and \-1 for failure.
+.PP
+File status is recorded as a
+.B Dir
+type:
+.IP
+.PP
+.EX
+Qid: adt
+{
+    path:   int;
+    vers:   int;
+};
+
+Dir: adt
+{
+    name:   string;
+    uid:    string;
+    gid:    string;
+    qid:    Qid;
+    mode:   int;
+    atime:  int;
+    mtime:  int;
+    length: int;
+    dtype:  int;
+    dev:    int;
+};
+.EE
+.PP
+If the file resides on permanent storage and is not a directory,
+the length returned by
+.B stat
+is the number of bytes in the file.
+For directories, the length returned is zero.
+Some devices report a length that is the number of bytes that
+may be read from the device without blocking.
+.PP
+Each file is the responsibility of some
+.IR server :
+it could be a file server, a kernel device, or a user process.
+.B Dtype
+identifies the server type, and
+.B dev
+says which of a group of servers of the same type is the one
+responsible for this file.
+.B Qid
+is a type containing
+.B path
+and
+.B vers
+members, each an integer:
+.B path
+is guaranteed to be
+unique among all path names currently on the file server, and
+.B vers
+changes each time the file is modified.
+Thus, if two files have the same
+.BR dtype ,
+.BR dev ,
+and
+.BR qid ,
+they are the same file.
+.PP
+The bits in
+.B mode
+are defined by
+.IP
+.EX
+16r80000000 #directory (Sys->CHDIR)
+
+      8r400 #read    permission by owner
+      8r200 #write   permission by owner
+      8r100 #execute permission (search on directory) by owner
+      8r070 #read, write, execute (search) by group
+      8r007 #read, write, execute (search) by others
+.EE
+.PP
+There is a
+.B Sys
+constant defined
+for the directory bit:
+.BR Sys\->CHDIR .
+.PP
+The two time fields are measured in seconds since the epoch
+(Jan 1 00:00 1970 GMT).
+.B Mtime
+is the time of the last change of content.
+Similarly,
+.B atime
+is set whenever the contents are accessed;
+also, it is set whenever
+.B mtime
+is set.
+.PP
+.B Uid
+and
+.B gid
+are the names of the owner and group (of owners) of the file.
+When an initial attachment is made to a server,
+the user string in the process group is communicated to the server.
+Thus, the server knows, for any given file access, whether the accessing
+process is the owner of, or in the group of, the file.
+This selects which sets of three bits in
+.B mode
+is used to check permissions.
+.PP
+Only some of the fields may be changed by
+.B wstat
+calls.
+The
+.B name
+can be changed by anyone with write permission in the parent directory.
+The
+.B mode
+and
+.B mtime
+can be changed by the owner or the group leader of the file's current
+group.
+The
+.B gid
+can be changed by the owner if he or she is a member of the new group.
+The
+.B gid
+can be changed by the group leader of the file's current group
+if he or she is the leader of the new group.
+.SS FAT file system (Windows9x and Windows/NT)
+The values of
+.B uid
+and
+.B gid
+are
+.BR Everyone .
+.PP
+Files and directories always have read and execute permission,
+which cannot be changed.
+Files without write permission cannot be removed.
+.SS NTFS file system (Windows/NT)
+Permissions for read, write and execute operates as described in
+the main section above.
+.PP
+.IR Emu (1)
+attempts to maintain a limited
+but consistent map between Inferno and NT worlds, specifically between Inferno names
+and NT security IDs.
+Special NT group
+.B Everyone
+represents `other' for file permissions.
+The Inferno
+.B uid
+is the file owner under NT;
+the Inferno
+.B gid
+reported is the first user in the file's ACL
+that is neither the owner nor
+.BR Everyone ;
+failing that, the
+.B gid
+is the file's owner.
+.SH SEE ALSO
+.IR sys-intro (2),
+.IR sys-dirread (2),
+.IR sys-open (2)

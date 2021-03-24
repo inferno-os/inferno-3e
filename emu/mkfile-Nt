@@ -1,0 +1,20 @@
+#
+#	architecture-dependent files for Windows Nt
+#
+
+TARGFILES=deveia-Nt.$O\
+	devfs-Nt.$O\
+	devip.$O\
+	ipif-Nt.$O\
+	os-Nt.$O\
+	win-Nt.$O\
+	devaudio.$O\
+	devaudio-Nt.$O\
+	srv.$O\
+	lock.$O\
+	fp-Nt.$O\
+	vlrt-Nt.$O\
+
+LDFLAGS=	-subsystem:console -entry:WinMainCRTStartup $LDFLAGS
+#LDFLAGS=	-subsystem:windows $LDFLAGS
+SYSLIBS=	$SYSLIBS wsock32.lib user32.lib gdi32.lib advapi32.lib winmm.lib mpr.lib

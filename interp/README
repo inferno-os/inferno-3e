@@ -1,0 +1,3 @@
+comp-29000.c provides an example of a compile() for an architecture that
+	lacks a jit compiler.
+comp-68020.c has not been tested recently

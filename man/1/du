@@ -1,0 +1,61 @@
+.TH DU 1
+.SH NAME
+du \- disk usage
+.SH SYNOPSIS
+.RB du [ \-santxy ]
+.RI [ "file ..." ]
+.SH DESCRIPTION
+The
+.B du
+command outputs to standard output the total size of files specified as arguments.
+Output sums are rounded up to the nearest 1k unit (1024 bytes).
+.PP
+Directories are recursively tallied.
+If no filenames are provided,
+the command operates on the current directory.
+.PP
+.I Du
+accepts the following options:
+.TP
+.BR \-s  " (default)"
+Output the usage information tallied for each directory.
+.TP
+.B \-a
+Output usage information for each file,
+not just the directories.
+.TP
+.B \-n
+Output just the filenames,
+no other information.
+Warning messages are generated for ``unsafe'' filenames
+(i.e., names containing shell special characters).
+.TP
+.B \-t
+When used with the
+.B \-n
+option,
+outputs the filename,
+modification time, (seconds since the epoch),
+size (in bytes),
+and checksum.
+This option has no effect in the absence of the
+.B \-n
+option.
+.PP
+The options
+.BR \-s ,
+.BR \-a , 
+and
+.B \-n
+are mutually exclusive.
+.SH SOURCE
+.B /appl/cmd/du.b
+.SH SEE ALSO
+.IR sh (1),
+.IR sys-stat (2)
+.SH BUGS
+The checksum field printed with the
+.B \-t
+option is always 0;
+it is intended to be used by some other commands as yet not distributed.
+

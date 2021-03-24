@@ -1,0 +1,64 @@
+.TH CP 1
+.SH NAME
+cp \- copy files
+.SH SYNOPSIS
+.B
+cp
+.I fromfile tofile
+.PP
+.B cp
+.I fromfile
+\&...
+.I todir
+.PP
+.B cp -r
+.I fromdir
+\&...
+.I todir
+.SH DESCRIPTION
+In the first form,
+.I fromfile
+is any name and
+.I tofile
+is any name except an existing directory.
+.PP
+In the second form, the commands copy one or more
+.I fromfiles
+into
+.I dir
+under their original file names, as if by a sequence of commands in the first form. For example:
+.IP
+.B "cp f1 f2 dir"
+.PP
+is equivalent to:
+.IP
+.B "cp f1 dir/f1;  cp f2 dir/f2"
+.PP
+When
+.I cp
+copies the contents of plain (non-directory) files
+.I fromfile
+to
+.IR tofile ,
+the mode and owner of
+.I tofile
+are preserved if it already exists; otherwise the mode of
+.I fromfile
+is used.
+.PP
+The
+.B -r
+option directs
+.I cp
+to copy recursively the named directories
+.I "fromdir ..."
+to the target directory
+.IR todir .
+.SH SOURCE
+.B /appl/cmd/cp.b
+.SH "SEE ALSO"
+.IR cat (1),
+.IR sys-stat (2)
+.SH DIAGNOSTICS
+.I Cp
+refuses to copy a file onto itself.

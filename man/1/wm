@@ -1,0 +1,153 @@
+.TH WM 1
+.SH NAME
+logon, wm \- window manager
+.SH SYNOPSIS
+.B wm/logon
+[
+.B -u
+.I username
+]
+.br
+.B wm/wm
+[
+.B -s
+]
+.SH DESCRIPTION
+.I Wm
+is the Inferno Tk-based window manager, providing the control mechanisms
+for the user to manage the order and position of a dynamic collection
+of application windows with a Limbo/Tk
+environment.
+.RI ( Mux (1)
+provides a completely different environment
+based not on Tk but rather the Prefab module described in
+.IR prefab-intro (2).)
+.PP
+.I Wm
+is normally started by running
+.BR wm/logon ,
+which acquires and validates a username to use for the window manager session.
+The
+.B -u
+option to
+.I logon
+specifies the initial username to try, otherwise a prompt is displayed for username input.
+.I Logon
+verifies that the user has a home directory and if a system licence exists, that
+the user has agreed to it.
+If agreement to the licence is required, the licence text is displayed and the user is
+requested to accept or reject the terms.
+If the user's directory does not exist or the user rejects the licence terms then
+the logon is rejected and the username prompt will be displayed again.
+.PP
+Before launching
+.BR wm/wm ,
+.I logon
+tests to see if the file
+.BI /usr/ username /lib/namespace
+exists.
+If so,
+.IR newns (2)
+is given it to construct the namespace in which
+.I wm
+will be run (see
+.IR namespace (6)).
+.PP
+When
+.I wm
+is started, it configures itself by means of the
+.B /lib/wmsetup
+shell script.
+.I Wm
+loads the shell
+.IR sh (1),
+and defines the following
+shell built-in
+commands before executing the script:
+.HP
+.B menu
+.I title1
+.RI [ title2]
+.I command
+.br
+Insert an item at the top of the start menu.
+.I Title1
+is the text of the item on the main menu.
+If
+.I title2
+is given then
+.I title1
+is a sub-menu with
+.I title2
+as the menu item.
+.I Command
+is executed by the shell whenever the item is selected.
+An item with an empty command is displayed as a separator.
+.HP
+.B delmenu
+.br
+Forget all menu items.
+.PP
+The standard
+.B /lib/wmsetup
+script executes the script
+.BI /usr/ username /lib/wmsetup ,
+enabling each user to have their own window manager configuration.
+.PP
+Both
+.I logon
+and
+.I wm
+use the currently bound
+.B /dev/draw
+directory,
+.BR /dev/keyboard ,
+and
+.B /dev/pointer
+for their graphical display, keyboard and mouse input.
+The display size will depend upon the particular device that is
+being used, or upon the arguments given to
+.IR emu (1).
+The
+.B -s
+option causes
+.I wm
+to suppress the start menu;
+available applications are limited to those started by
+.B wmsetup
+and applications they start in turn.
+.SH FILES
+.TF /chan/wmstdout
+.TP
+.B /chan/snarf
+File representing global `snarf' buffer for text exchange between windows
+.TP
+.B /chan/wm
+Control channel used by
+.IR wmlib (2)
+.TP
+.B /chan/wmstdout
+Standard output for processes started by
+.I wm
+.TP
+.B /chan/wmstderr
+Standard error for processes started by
+.I wm
+.TP
+.B /dev/pointer
+Source of mouse events to feed to
+.IR tk (2)
+.TP
+.B /dev/keyboard
+Source of keyboard data to feed to
+.IR tk (2)
+.SH SOURCE
+.B /appl/wm/logon.b
+.br
+.B /appl/wm/wm.b
+.SH "SEE ALSO"
+.IR sh (1),
+.IR emu (1),
+.IR wm-license (1),
+.IR wmlib (2),
+.IR namespace (6)

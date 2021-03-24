@@ -1,0 +1,76 @@
+<HTML><HEAD>
+<TITLE>Inferno Contribution: channels</TITLE>
+</HEAD><BODY>
+<H3>Inferno Contribution: channels</H3>
+<h3>Threads and Processes in Limbo</h3>
+
+Threads in Limbo feel more like processes in other
+languages. The reason for this is that the Limbo language makes it easy
+to forget that you are sharing memory space with other threads.
+<p>
+Note that Limbo does not distinguish between threads and processes:
+<i>all</i> processes in the system can potentially share memory (but the
+language makes that safe, in general).  the reason is that
+Limbo/Inferno does not provide a fork() primitive, but spawn, which is
+exactly like calling a function except that the function gets called in
+a new process.
+<P>
+A channel is similar to a pipe, except that it's unidirectional, and
+typed. passing a value down a channel is exactly equivalent to passing
+the same value as an argument to a function (i.e. the value itself is
+copied, but if it points to something modifiable, then the process at
+the other end is at liberty to modify it).
+<P>
+in a C style environment, with pointers lurking all around the place,
+this model would be fairly dangerous, but Limbo provides guarantees
+that ensure that certain data types are <i>not</i> modifiable once you've
+given them away.
+<P>
+The most important is probably the string type.  Strings in Limbo are
+modifiable in place (in the same way as you can modify an integer
+variable) but they are assigned by value (for efficiency, this is
+implemented with copy-on-write). So if you pass a string down a
+channel, it incurs no more overhead than passing any pointer, but you
+know that the process at the other end cannot under any circumstances
+modify your local copy of that string.
+<P>
+Lists are also very important: in particular, note that you cannot
+alter elements of a list, and that the list primitives do not alter a
+list in place, but instead notionally create a new list with one more
+(::) or one less (tl) element.
+<P>
+
+This means that if you have a list of a by-value type, then you can
+pass it down a channel with the absolute guarantee that the process at
+the other end cannot alter your copy of the list. The overhead of
+passing it is just the copying of a pointer. No copy-on-write is
+necessary, as lists are not modifiable. Reference counting deals with
+the garbage collection easily, as it's not possible to make a
+self-referential list.
+<P>
+
+In this way, if I pass (say) a list of string to another process then i
+can ignore synchronisation issues between the two processes, even
+though all the memory in the list is shared between the two processes.
+<P>
+That's not to say that all data structures act in this by-value way.
+For instance, you might have a pipeline of processes, each modifying a
+data structure and passing it on. the synchronisation is implicit in
+the "ownership" of the data structure, and the use of channels makes it
+easy.
+<P>
+
+Here's a little example that demonstrates that technique;
+it adds all the integers from 1 to 100.
+<P>
+
+Roger Peppe
+
+<HR>
+The following files are available for downloading:<TABLE BORDER="0">
+<TR>
+<TD><a href="channels.b">channels.b</a></TD>
+<TD>(810 bytes)</TD>
+</TR>
+</TABLE>
+</BODY></HTML>

@@ -1,0 +1,18 @@
+<../../../../../mkconfig
+
+TARG=\
+	Mail.dis\
+	bufio.dis\
+	Mailpop3.dis\
+
+MODULES=\
+	bufio.m\
+
+SYSMODULES=\
+	sh.m\
+	sys.m\
+	draw.m\
+
+DISBIN=$ROOT/acme/mail
+
+<$ROOT/mkfiles/mkdis

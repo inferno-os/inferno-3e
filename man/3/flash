@@ -1,0 +1,83 @@
+.TH FLASH 3 MPC8xx
+.SH NAME
+flash \- flash memory
+.SH SYNOPSYS
+.nf
+.B bind -a '#F' /dev
+
+.B /dev/flash
+.B /dev/flashctl
+.B /dev/flashstat
+.fi
+.SH DESCRIPTION
+.PP
+The flash memory device serves a one-level directory,
+giving access to three files.
+The data file
+.B flash
+provides read and write access to the bytes on the system's flash memory.
+Bytes can be read and written on any byte boundary:
+the interface hides any alignment restrictions.
+A read returns the value of the bytes at the current file offset.
+A write reprograms the flash at the current
+file offset to the given byte values, using the physical
+device's reprogramming algorithm.
+An erased flash byte is logically
+.B 16rFF
+(regardless of the conventions of the physical flash device).
+A write can change a bit with value 1 to a 0,
+but cannot change a 0 bit to 1;
+that can only be done by erasing one or more flash segments.
+.PP
+The control file
+.B flashctl
+receives commands to erase a single flash segment (erase unit)
+or the whole flash memory.
+There are two forms of erase command:
+.TP
+.B erase all
+Erase the whole flash, setting all bytes to
+.BR 16rFF ,
+except those that are hardware write-protected.
+.TP
+.BI erase " offset"
+Erase the segment that begins at the given
+.IR offset ,
+setting all bytes to
+.BR 16rFF ,
+except those that are hardware write-protected.
+The
+.I offset
+is a number of bytes, but must be a multiple
+of the segment (erase unit) size.
+The syntax of the number is that of
+.BR strtoul ;
+the default base is 10.
+.PP
+The status file
+.B flashstat
+is a read-only file.
+A read returns a single line containing five hexadecimal numbers
+(separated by white space)
+revealing the memory's characteristics:
+the manufacturer ID, the flash device ID, its width in bytes,
+the size in bytes of an erase unit, and the size in bytes of the memory.
+.SH SOURCE
+.B /os/mpc/devflash.c
+.br
+.B /os/mpc/flashamd.c
+.br
+.B /os/mpc/flashpaq.c
+.br
+.B /os/pc/devflash.c
+.br
+.B /os/pc/flashzpc.c
+.SH SEE ALSO
+.IR ftl (3)
+.SH DIAGNOSTICS
+A write will return an error if
+an attempt is made to change a 0 bit to 1,
+or if the flash memory fails to be programmed correctly.
+.SH BUGS
+The flash cannot be written if the kernel is executing directly from flash,
+because the physical flash cannot be read during programming.

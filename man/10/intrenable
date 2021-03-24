@@ -1,0 +1,34 @@
+.TH INTRENABLE 10.2
+.SH NAME
+intrenable \- interrupt handler registration
+.SH SYNOPSIS
+.ta \w'\fLvoid* 'u
+.B
+void intrenable(int v, void (*f)(Ureg*, void*), void* a, int tbdf);
+.SH DESCRIPTION
+.I Intrenable
+registers
+.I f
+to be executed by the system on receipt of the interrupt defined by
+the platform-dependent encoding
+.I v
+(it is often an interrupt level, but can be more complex).
+The pointer
+.I a
+is passed to
+.IR f .
+The
+.I tbdf
+parameter is a platform-dependent value that
+denotes the type of bus, bus instance, device number and function
+(cf. the PCI device indexing scheme).
+.PP
+A linked list of such functions is maintained per interrupt level. The intrenable function inserts the current function at the head of that list.
+.PP
+There is no mechanism for removing an interrupt handler from the list.
+.PP
+The Ureg structure provided to f contains the registers at the time of interrupt. The contents are platform specific;
+see the include file
+.BR "u.h" .
+.SH SEE ALSO
+.IR splhi (10.2)

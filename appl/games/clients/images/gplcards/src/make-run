@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+
+$width=shift(@ARGV);
+$last=pop(@ARGV);
+
+foreach $card (@ARGV)
+{
+	system("giftopnm $card.gif | pnmcut 0 0 $width 97 > $card.tmp");
+	push(@link,"$card.tmp");
+}
+
+system("giftopnm $last.gif > last.tmp");
+system("pnmcat -lr @link last.tmp | ppmtogif -interlace -sort -transparent yellow");
+system("rm @link last.tmp");

@@ -1,0 +1,20 @@
+<../../../mkconfig
+
+TARG=\
+	9660srv.dis\
+	iso9660.dis\
+	iobuf.dis\
+
+MODULES=\
+	iobuf.m\
+	xfiles.m\
+
+SYSMODULES=\
+	arg.m\
+	styx.m\
+	sys.m\
+
+DISBIN=$ROOT/dis/svc/cdfs
+
+<$ROOT/mkfiles/mkdis
+

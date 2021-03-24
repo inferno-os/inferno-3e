@@ -1,0 +1,16 @@
+Inferno, Third Edition, 4 June 2003
+
+This is an historical snapshot of Inferno, taken 4 June 2003, of its "Third Edition",
+originally released by Vita Nuova Holdings in 2000 and further developed.
+(This snapshot preceded the creation of Inferno Fourth Edition, with its significant changes.)
+
+It is provided here as an historical snapshot.
+It is not provided as usable software.
+It is not intended that it will run or even compile on current target systems.
+
+It is re-released here under an MIT-template licence, covering both Inferno and various extracts from Plan 9 (as of 2021 also under MIT licence).
+The original NOTICE file has been moved to NOTICE.orig.
+
+* see os/README for a list of native ports
+* /contrib has examples and fixes contributed by users
+* Third Edition was the last to include the prefab interface, switching entirely to Tk in 4th Edition

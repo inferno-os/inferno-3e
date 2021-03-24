@@ -1,0 +1,79 @@
+.TH ATTACH 5 
+.SH NAME
+attach and  nop \- messages to initiate activity
+.SH SYNOPSIS
+.ta \w'\fLTattach 'u
+.B Tnop	
+.IR tag [2]
+.br
+.B Rnop	
+.IR tag [2]
+.PP
+.B
+Tattach	
+.IR tag [2]
+.IR fid [2]
+.IR uid [28]
+.IR aname [28]
+.br
+.B
+Rattach	
+.IR tag [2]
+.IR fid [2]
+.IR qid [8]
+.SH DESCRIPTION
+The
+.B nop
+request does nothing overt but may be used to synchronize the channel initially.
+.PP
+The
+.B tag
+should be
+.B notag
+(value
+.BR 16rFFFF )
+for a
+.B nop
+message.
+.PP
+The
+.B attach
+message serves as a fresh introduction from a user on the client machine to a server.
+The message identifies the user
+.RI ( uid )
+and may select the file tree to access
+.RI ( aname ).
+.PP
+As a result of the
+.B attach
+transaction, the client will have a connection to the root
+directory of the desired file tree, represented by
+.IR fid .
+An error is returned if
+.I fid
+is already in use.
+The server's idea of the root of the file tree is represented by the returned
+.IR qid .
+.SH ENTRY POINTS
+An
+.B attach
+transaction will be generated for kernel devices (see
+.IR intro (3)).
+when a system call evaluates a file name beginning with
+.BR # .
+A
+.B mount
+call (see
+.IR sys-bind (2))
+generates an
+.B attach
+message to the remote file server.
+When the kernel boots, an
+.B attach
+is made to the root device,
+.IR root (3),
+and then an \f5attach\fP is made to the requested file server machine.
+.SH SEE ALSO
+.IR sys-bind (2),
+.IR intro (3),
+.IR root (3)

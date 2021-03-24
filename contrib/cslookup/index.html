@@ -1,0 +1,28 @@
+<HTML><HEAD>
+<TITLE>Inferno Contribution: cslookup</TITLE>
+</HEAD><BODY>
+<H3>Inferno Contribution: cslookup</H3>
+<p>
+Cslookup is an example of a program that interacts
+directly with <tt>/net/cs</tt>.
+<p>
+Give it an address (or addresses) in the usual
+<em>net</em><tt>!</tt><em>address</em><tt>!</tt><em>service</em> form,
+and it spits out any translations of those addresses in the standard form
+returned by cs (i.e. clone file and address to connect to).
+
+<dl><dt>For instance:<dd><pre>
+% cslookup tcp!pop3.freeserve.net!pop3
+/net/tcp/clone 195.92.193.154!110
+/net/tcp/clone 195.92.195.154!110
+%
+</pre>
+</dl>
+<HR>
+The following files are available for downloading:<TABLE BORDER="0">
+<TR>
+<TD><a href="cslookup.b">cslookup.b</a></TD>
+<TD>(1125 bytes)</TD>
+</TR>
+</TABLE>
+</BODY></HTML>

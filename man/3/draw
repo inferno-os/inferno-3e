@@ -1,0 +1,729 @@
+.TH DRAW 3
+.SH NAME
+draw \- graphics device
+.SH SYNOPSIS
+.EX
+.B bind -b #d /dev
+
+.B /dev/draw/new
+
+.BI /dev/draw/ n /ctl
+.BI /dev/draw/ n /data
+.BI /dev/draw/ n /refresh
+
+.EE
+.SH DESCRIPTION
+The
+.B draw
+device serves a three-level file system providing an interface to the
+graphics facilities of the system; the Limbo Draw module (see
+.IR draw-intro (2))
+accesses the device to implement its functions.
+.PP
+Each client of the device connects by opening
+.B /dev/draw/new
+and reading back 7 decimal numbers, each 11 characters wide followed by a blank:
+the connection number
+.RI ( n ),
+the image id (q.v.) of the display image (always zero),
+the
+.B ldepth
+of the display image,
+and the
+.BR min.x ,
+.BR min.y ,
+.BR max.x ,
+and
+.B max.y
+of the rectangle defining the display image.
+The client can then open the directory
+.BI /dev/draw/ n /
+to access the
+.BR ctl ,
+.BR data ,
+and
+.B refresh
+files associated with the connection.
+.PP
+The
+.B ctl
+file accepts no messages; its only purpose is to return the initialization information.
+.PP
+The
+.B data
+file accepts messages corresponding to procedures in the Draw module:
+allocate a window or image, draw on the image, paint text, etc.
+Some such messages generate data to be returned to the client, which can recover
+it by reading the
+.B data
+file.
+.PP
+The
+.B refresh
+file is read-only.
+As windows owned by the client are uncovered,
+if they cannot be refreshed by the server (such as when they have
+refresh functions associated with them), a message is made available
+on the
+.B refresh
+file reporting what needs to be repainted by the client.
+The message has five decimal integers formatted as in the
+.B ctl
+message: the image id of the window and the coordinates of the rectangle
+that should be refreshed.
+.PP
+The
+.B draw
+device provides three types of graphical resource: Images, Screens and Fonts.
+Resource instances have an identification number.
+Screen identifiers are global to the device.
+All other identifiers are local to each client.
+.PP
+Image is the fundamental resource type on which all drawing primitives
+are performed.
+At client connection the physical display is represented by Image 0.
+.PP
+A Screen manages a set of (overlapping) Images, handling
+Z-order and position manipulation and the refreshing of regions
+uncovered by such operations.
+When a Screen is created it is associated with an Image on which
+to render itself.
+New images can be associated with a screen when they are created; they
+are then treated as windows on that screen.
+Screens can be marked as
+.IR public ,
+meaning that other clients can import their ID and create new windows
+on them.
+.PP
+A Font is an image with associated character data.
+The Font image provides the bitmap of all the characters in the
+Font; the character data is used by the string command to render
+characters from the image.
+.SS "Command Messages"
+Messages written to the
+.B data
+file take the form of a single command code followed by command specific binary parameters.
+The command is given by the byte code of a US-ASCII character.
+Multibyte integer parameters are presented low-order byte first.
+Points are two four-byte numbers:
+.B x
+and
+.BR y .
+Rectangles are four four-byte numbers:
+.BR min.x ,
+.BR min.y ,
+.BR max.x ,
+and
+.BR max.y .
+Any errors in the format of a message or its parameter values result in the
+.I write
+(see
+.IR sys-read (2))
+request failing with an appropriate diagnostic message.
+.PP
+In the following list, the byte width of each parameter is given in square brackets.
+.PP
+.HP
+.B a
+.IR id [4]
+.IR screenid [4]
+.IR refresh [1]
+.IR ldepth [2]
+.IR repl [1]
+.IR R [4*4]
+.IR clipR [4*4]
+.IR value [1]
+.br
+Allocate an image with the given numeric
+.IR id.
+The device checks that
+.I id
+is unique within the id-space of the client.
+If
+.I screenid
+is 0 the image is created as a simple off-screen bitmap, otherwise
+it is created as a window on the specified screen.
+.IP
+The
+.I refresh
+parameter specifies the refresh method to use when on-screen
+images (windows) need updating.
+It is ignored for off-screen images.
+.br
+The refresh methods are:
+.IP
+Backup (0)
+.br
+Modifications to covered areas of the image are written to backing store.
+When an area is uncovered, the corresponding area of the screen image
+is refreshed from the backing store.
+No notification is given via the
+.B refresh
+file.
+.IP
+Local (1)
+.br
+No backing store is associated with the image.
+Operations only affect uncovered areas of the image on the screen.
+No refresh notification is given via the
+.B refresh
+file.
+This method is useful for images that are constantly updated.
+.IP
+Remote (2)
+.br
+No backing store is associated with the image.
+Operations only affect uncovered areas of the image on the screen.
+When an area is uncovered, a refresh message is
+buffered on the
+.B refresh
+file of the client that created the image.
+.IP
+.I Ldepth
+is the log base 2 of the number of bits per pixels.
+This must match that of the associated screen.
+If
+.I repl
+is non-zero the image behaves as if it tiles the entire integer plane
+bounded by
+.IR clipR .
+The rectangle
+.I R
+gives the extent of the image.
+For windows,
+.I R
+also gives the position of the image on the screen.
+New windows are always created on top of the others on the screen.
+The clipping rectangle of the image is given by
+.IR clipR .
+The pixels in the new image are assigned the
+.I value
+palette index.
+.HP
+.B A
+.IR id [4]
+.IR imageid [4]
+.IR fillid [4]
+.IR public [1]
+.br
+Create a new screen on the existing image given by
+.IR imageid .
+The image must not already be assigned to a screen.
+The screen
+.I id
+must be unique on the device.
+.I Fillid
+specifies the image used to paint the screen background.
+This image should be tiled
+.RI ( repl " != 0)",
+or be larger than the sreen image.
+If
+.I public
+is non-zero then the screen is made available for use by other clients.
+.HP
+.B c
+.IR dstid [4]
+.IR repl [1]
+.IR clipR [4*4]
+.br
+Set the 
+.I repl
+flag and clipping rectangle
+.IR clipR
+of the existing image
+.IR dstid.
+.HP
+.B x
+.IR P [2*4]
+.br
+Move the cursor to point
+.IR P .
+.HP
+.B C
+.IR id [4]
+.IR hotspot [2*4]
+.br
+Set the cursor image to that given by
+.IR id .
+The
+.I hotspot
+point is the offset added to the mouse position when drawing the cursor image.
+The image given by
+.I id
+must have ldepth 0.
+.HP
+.B d
+.IR dstid [4]
+.IR srcid [4]
+.IR maskid [4]
+.IR R [4*4]
+.IR P0 [2*4]
+.IR P1 [2*4]
+.br
+The general drawing, or bitmap block transfer (bitblt) command.
+The rectangle
+.I R
+specifies the region in the
+.I dstid
+image to be modified.
+Pixel values are copied from the rectangle of the same
+size located at point
+.I P0
+in the
+.I srcid
+image.
+Only those pixels in
+.I R
+of
+.I dstid
+are copied for which the congruent pixel in the same sized rectangle
+positioned at point
+.I P1
+in the
+.I maskid
+image have a non-zero value.
+The repl flag is honoured when determining pixel values in the
+source and mask images.
+The clipping rectangles and actual dimensions of all the images are observed when
+determining which pixels are to be copied.
+.I
+.HP
+.B e
+.IR dstid [4]
+.IR srcid [4]
+.IR center [2*4]
+.IR a [4]
+.IR b [4]
+.IR thick [4]
+.IR sp [2*4]
+.IR alpha [4]
+.IR phi [4]
+.br
+Draw an ellipse or arc.
+The ellipse is drawn on the
+.I dstid
+image using pixel values from the
+.I srcid
+image.
+The point
+.I sp
+in the
+.I srcid
+image maps to the point
+.I center
+in the
+.I dstid
+image.
+.IP
+The ellipse is centered on the point
+.I center
+in
+.IR dstid.
+The parameters
+.I a
+and
+.I b
+specify the horizontal and vertical semiaxes.
+The outline of the ellipse is
+.RI "1+2" thick
+pixels wide.
+An outline thicker than 1 pixel extends equally inside and outside of the ellipse.
+.IP
+An arc of the ellipse is drawn
+if the most significant bit (1<<31) of
+.I alpha
+is set.
+.I Alpha
+specifies the start angle and
+.I phi
+gives the path angle of the arc.
+Angles are given in degrees measured counterclockwise from the positive x axis.
+.HP
+.B E
+.IR dstid [4]
+.IR srcid [4]
+.IR center [2*4]
+.IR a [4]
+.IR b [4]
+.IR thick [4]
+.IR sp [2*4]
+.IR alpha [4]
+.IR phi [4]
+.br
+Draw a filled ellipse.
+Parameters are as for
+.BR e ,
+the unfilled ellipse command.
+If an arc is specified then the filled wedge defined by the arc is drawn.
+.HP
+.B f
+.IR id [4]
+.br
+Free the image specified by
+.IR id .
+If
+.I id
+represents a screen fill or image, then the resource will not be released
+until the screen is freed.
+.HP
+.B F
+.IR id [4]
+.br
+Free the screen specified by
+.IR id .
+A public screen is only released when no other clients have a
+reference to it.
+When a screen is freed, its image and fill resources are also freed,
+invalidating their IDs.
+.HP
+.B i
+.IR fontid [4]
+.IR nchars [4]
+.IR ascent [1]
+.br
+Allocate a new font using the existing image
+.IR fontid .
+.I Nchars
+worth of character data is reserved for the font.
+.I Ascent
+defines the distance from the top of the font image to the baseline.
+.HP
+.B l
+.IR fontid [4]
+.IR srcid [4]
+.IR index [2]
+.IR R [4*4]
+.IR P [2*4]
+.IR left [1]
+.IR width [1]
+.br
+Initialise a font character.
+Load the image and rendering data for the character code
+.I index
+in font
+.IR fontid .
+The character bitmap is copied to the rectangle
+.I R
+in the font image,
+from the same sized rectangle positioned at point
+.I P
+in the
+.I srcid
+image.
+.IP
+When the character is rendered, using the
+.B s
+command, it is drawn offset horizontally by
+.I left
+pixels to allow for internal whitespace on the left of the character image.
+.I Width
+specifies the width of the rendered character, not of its internal bitmap.
+.HP
+.B L
+.IR dstid [4]
+.IR p0 [2*4]
+.IR p1 [2*4]
+.IR end0 [4]
+.IR end1 [4]
+.IR radius [4]
+.IR srcid [4]
+.IR sp [2*4]
+.br
+Draw a line from
+.I p0
+to
+.I p1
+in
+.I dstid
+using pixels from
+.IR srcid .
+The point
+.I sp
+in
+.I srcid
+corresponds to the point
+.I p0
+in
+.IR dstid .
+The thickness of the line is given by
+.RI "1+2" radius .
+The parameters
+.I end0
+and
+.I end1
+specify how the respective ends of the line are drawn.
+The end type is given by the low-order 5 bits of the parameter.
+The following values can be used:
+.IP
+Endsquare (0)
+.br
+The line is terminated perpendicularly to its direction.
+.IP
+Enddisc (1)
+.br
+The line is terminated by a semi-circle of diameter
+.RI "1+2" radius ,
+centered on the end-point.
+.IP
+Endarrow (2)
+.br
+The remaining 27 high-order bits of the parameter specify how the arrow is
+drawn by partitioning the bits into three 9-bit values:
+.IR a ,
+.I b
+and
+.IR c .
+The 9 lower-order bits give a, the 9 high-order bits give c.
+The parameter
+.I a
+defines the distance from the tip to the point on the line where the barb starts.
+The parameter
+.I b
+gives the distance along the line from the tip to the tail of the barb.
+If
+.IR a " = " b
+a triangular arrow-head is formed.
+If
+.IR a " < " b
+a delta shaped arrow-head is formed.
+The parameter
+.I c
+specifies the distance perpendicular from the edge of the line to the barb.
+.HP
+.B o
+.IR id [4]
+.IR r.min [2*4]
+.IR screenr.min [2*4]
+.br
+Set the screen and logical origin of window
+.IR id .
+If
+.I id
+is not an on-screen image (window) the command does nothing.
+The logical origin of the window, affecting all drawing primitives on that
+window's image, is given by the point
+.IR r.min .
+The position of the window on its screen is given by the point
+.IR screenr.min .
+.HP
+.B p
+.IR dstid [4]
+.IR n [2]
+.IR end0 [4]
+.IR end1 [4]
+.IR radius [4]
+.IR srcid [4]
+.IR sp [2*4]
+.IR p0 [2*4]
+.IR dp [2*2*n]
+.br
+Draw the polygon made up of
+.I n
+lines.
+The starting point of the first line is given by
+.IR p0 .
+The (x, y) deltas of the remaining vertices are given by
+.IR dp .
+The ends of the polygon,
+.I end0
+and
+.IR end1 ,
+and the line
+.I radius
+are treated as per the line
+.RB (` L ')
+command.
+Interior lines are terminated with Enddisc, to give a smooth join.
+The lines are drawn using pixel values from the
+.I srcid
+image, where
+.I sp
+in
+.I srcid
+aligns with
+.I p0
+in the destination image.
+.HP
+.B P
+.IR dstid [4]
+.IR n [2]
+.IR wind [4]
+.IR ignore [2*4]
+.IR srcid [4]
+.IR sp [2*4]
+.IR p0 [2*4]
+.IR dp [2*2*n]
+.br
+Draw a filled polygon.
+The parameters
+.IR dstid ,
+.IR n ,
+.IR srcid ,
+.IR sp ,
+.IR p0 ,
+and
+.I dp
+are treated in the same way as the polygon line command
+.RB (` p ').
+The
+.I ignore
+parameter is ignored!
+The
+.I wind
+parameter specifies the winding rule to use for determining which pixels
+are
+.I `inside'
+the polygon.
+A value of ~0 specifies that pixels are inside if the polygon's winding number
+about the point is non-zero.
+For the value 1, a pixel is inside if the winding number is odd.
+The complements of these values (0 and ~1) result in outside
+pixels being painted.
+.I
+.HP
+.B r
+.IR id [4]
+.IR R [4*4]
+.br
+Read the pixel values from the rectangle
+.I R
+of image
+.IR id .
+.IP
+The binary values are returned by reading the
+.B data
+file of the client.
+The data is formatted one horizontal line at a time, starting with the top-left
+pixel of
+.IR R .
+The bit-width of the pixel values depends on the ldepth of the image.
+Pixel values are packed into bytes most significant bit first.
+Each line encodes to a whole number of bytes in the output, even if the last byte
+is not completely filled.
+.HP
+.B s
+.IR dstid [4]
+.IR srcid [4]
+.IR fontid [4]
+.IR P [2*4]
+.IR clipR [4*4]
+.IR sp [2*4]
+.IR ni [2]
+.IR index [2*ni]
+.br
+Draw text using font
+.IR fontid .
+The text line is drawn with its top left corner starting at point
+.I P
+in
+.IR dstid .
+The text string, of length
+.IR ni ,
+is given by
+.IR index ,
+the sequence of font character indices.
+The clipping rectangle of
+.I dstid
+is temporarily set to
+.IR clipR .
+.IP
+Characters are rendered using the associated character image as
+a mask.
+Only those pixels in the
+.I srcid
+image are copied for which the corresponding pixel in the character rectangle
+of the font image
+is non-zero.
+The point
+.I sp
+of the source image is aligned with point
+.I P
+of
+.IR dstid .
+.HP
+.B S
+.IR id [4]
+.IR ldepth [4]
+.br
+Import public screen
+.IR id .
+Before a public screen can be used by a client that did not create it, its
+ID must be imported.
+The device checks that
+.I id
+is a valid public screen and that its
+.I ldepth
+matches that specified.
+.HP
+.B t
+.IR top [1]
+.IR nw [2]
+.IR id [4*n]
+.br
+Raise (or lower)
+.I nw
+windows to the top (or bottom) of their screen.
+All the window IDs given in the
+.I id
+list must belong to the same screen.
+If
+.I top
+is non-zero, the windows are brought in front of any others,
+the first window of the list being foremost.
+Otherwise, they are pushed to the back, the first window
+of the list being placed right at the back.
+.IP
+.TP
+.B v
+Update changes to the display.
+Drawing on the display image (id 0) immediately affects
+the contents of the internal image but the changes are not
+automatically flushed to the physical display hardware.
+This command updates the display hardware with the modified region of
+the display image.
+.HP
+.B w
+.IR id [4]
+.IR R [4*4]
+.IR data [1*x]
+.br
+Write pixel values to the rectangle
+.I R
+in the image given by
+.IR id .
+The pixel data in the
+.I data
+parameter is in the same format as returned by the
+read pixels
+.RB (` r ')
+command and must be of at least the length required for the
+given
+.I R
+and image ldepth.
+.HP
+.B W
+.IR id [4]
+.IR R [4*4]
+.IR data [1*x]
+.br
+Write pixel values from compressed data.
+The parameters are the same as for the
+.RB ' w '
+command, except that the data is in a compressed format.
+The data is in the Inferno compressed image format
+(see
+.IR image (6)),
+stripped of all headers;
+just the variable-length code words are given.
+.SH SOURCE
+.B /emu/devdraw.c
+.br
+.B /os/port/devdraw.c
+.br
+.B /memimage/*.c
+.br
+.B /memlayer/*.c
+.br
+.SH SEE ALSO
+.IR draw-intro (2),
+.IR image (6)

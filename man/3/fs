@@ -1,0 +1,42 @@
+.TH FS 3 emu
+.SH NAME
+fs \- host file system interface
+.SH SYNOPSIS
+.EX
+bind #U /
+
+sys->bind("#U", "/", Sys->MAFTER|Sys->MCREATE);
+.EE
+.SH DESCRIPTION
+.I Fs
+provides an interface to the host file system when running
+.IR emu (1).
+The device is automatically bound to the root of the Inferno namespace when
+.I emu
+starts.
+.I Fs
+maps filenames from the Inferno namespace to the real host filesystem
+namespace. The mapping is determined by the host system directory that
+.I emu
+serves (see the description of the
+.B -r
+option in
+.IR emu (1)).
+.PP
+When there is nothing but
+.IR root (3)
+in the name space, the device can only be bound from Limbo using
+.IR sys-bind (2)
+as shown above, since there is nothing in the name space
+to support either
+.IR bind (1)
+or
+.IR newns (2).
+It can later be rebound elsewhere in the name space using
+.IR bind (1).
+.SH SOURCE
+.B /emu/devfs-Inferno.c
+.br
+.B /emu/devfs-Nt.c
+.br
+.B /emu/devfs-posix.c

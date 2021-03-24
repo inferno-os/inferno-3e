@@ -1,0 +1,37 @@
+<../../../mkconfig
+
+TARG=\
+	create.dis\
+	info.dis\
+	wdiff.dis\
+	inst.dis\
+	wrap.dis\
+	bufio.dis\
+	archfs.dis\
+	install.dis\
+	arch.dis\
+	proto.dis\
+	ckproto.dis\
+	proto2list.dis\
+	wrap2list.dis\
+	wfind.dis\
+	date.dis\
+
+MODULES=\
+	wrap.m\
+	arch.m\
+	archfs.m\
+	bufio.m\
+	proto.m\
+	protocaller.m\
+
+SYSMODULES=\
+	arg.m\
+	sys.m\
+	draw.m\
+	bufio.m\
+	string.m\
+
+DISBIN=$ROOT/dis/install
+
+<$ROOT/mkfiles/mkdis
